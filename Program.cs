@@ -29,11 +29,13 @@ namespace LikeAllStrava
 
                 Console.WriteLine("Iniciando login no Strava...");
 
-                // Abre o Strava (2x para garantir melhor carregamento da página)
+                // Abre o Strava (3x para garantir melhor carregamento da página)
                 driver.Url = "https://www.strava.com/login";
-                System.Threading.Thread.Sleep(2000);
+                System.Threading.Thread.Sleep(1000);
                 driver.Url = "https://www.strava.com/login";
-                System.Threading.Thread.Sleep(2000);
+                System.Threading.Thread.Sleep(1000);
+                driver.Url = "https://www.strava.com/login";
+                System.Threading.Thread.Sleep(1000);
 
                 // Click no botão de aceitar os cookies
                 var acceptCookiesButton = driver.FindElement(By.CssSelector(".btn-accept-cookie-banner"));
