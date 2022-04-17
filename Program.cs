@@ -82,11 +82,11 @@ namespace LikeAllStrava
                                 ScrollToElement(js, botao);
                                 System.Threading.Thread.Sleep(1000);
 
-                                // Clica nos botões de like e espera 7s pra não ser 
+                                // Clica nos botões de like e espera 5s pra não ser 
                                 // bloqueado pelo Strava
                                 js.ExecuteScript("var evt = document.createEvent('MouseEvents');" + "evt.initMouseEvent('click',true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0,null);" + "arguments[0].dispatchEvent(evt);", botao);
                                 Console.WriteLine("LIKED!");
-                                System.Threading.Thread.Sleep(7000);
+                                System.Threading.Thread.Sleep(5000);
                             }
                         }
                         catch { }
