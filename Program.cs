@@ -80,13 +80,13 @@ namespace LikeAllStrava
                                 // Faz scroll até o botão de like
                                 Console.Write("Encontrado treino pra dar like...");
                                 ScrollToElement(js, botao);
-                                System.Threading.Thread.Sleep(1000);
+                                System.Threading.Thread.Sleep(500);
 
-                                // Clica nos botões de like e espera 5s pra não ser 
+                                // Clica nos botões de like e espera 3s pra não ser 
                                 // bloqueado pelo Strava
                                 js.ExecuteScript("var evt = document.createEvent('MouseEvents');" + "evt.initMouseEvent('click',true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0,null);" + "arguments[0].dispatchEvent(evt);", botao);
                                 Console.WriteLine("LIKED!");
-                                System.Threading.Thread.Sleep(5000);
+                                System.Threading.Thread.Sleep(3000);
                             }
                         }
                         catch { }
@@ -135,7 +135,7 @@ namespace LikeAllStrava
                 // Faz scroll até o elemento
                 if (element.Location.Y > 200)
                 {
-                    js.ExecuteScript($"window.scrollTo({0}, {element.Location.Y - 200 })");
+                    js.ExecuteScript($"window.scrollTo({0}, {element.Location.Y - 600 })");
                 }
             }
             catch { }
