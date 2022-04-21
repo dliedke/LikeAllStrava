@@ -55,7 +55,7 @@ namespace LikeAllStrava
 
                 // Espera um pouco pra logar e verifica se elemento carregou
                 System.Threading.Thread.Sleep(2000);
-                WebDriverExtensions.WaitExtension.WaitUntilElement(driver, By.CssSelector(".EntryHeader--entry-header--14ujs"), 15);
+                WebDriverExtensions.WaitExtension.WaitUntilElement(driver, By.XPath("//*[@data-testid='entry-header']"), 15);
                 System.Threading.Thread.Sleep(2000);
                 Console.WriteLine("Completado login no Strava");
 
