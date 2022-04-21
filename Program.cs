@@ -75,17 +75,32 @@ namespace LikeAllStrava
 
                 Console.WriteLine("Beginning Strava Login...");
 
-                // Open Strava (3x to ensure correct page loading)
-                driver.Url = "https://www.strava.com/login";
-                System.Threading.Thread.Sleep(1000);
-                driver.Url = "https://www.strava.com/login";
-                System.Threading.Thread.Sleep(1000);
-                driver.Url = "https://www.strava.com/login";
-                System.Threading.Thread.Sleep(1000);
+                int totalCountStravaLoad = 0;
 
-                // Accept cookies button click
-                var acceptCookiesButton = driver.FindElement(By.CssSelector(".btn-accept-cookie-banner"));
-                acceptCookiesButton.Click();
+            retryStravaLoad:
+
+                try
+                {
+                    // Error loading Strava (tried 3 times)
+                    if (totalCountStravaLoad == 3)
+                    {
+                        Console.WriteLine("Error: Could not load Strava.");
+                        Environment.Exit(-1);
+                    }
+
+                    // Try to load Strava login screen
+                    driver.Url = "https://www.strava.com/login";
+
+                    // Accept cookies button click
+                    WebDriverExtensions.WaitExtension.WaitUntilElement(driver, By.CssSelector(".btn-accept-cookie-banner"), 2);
+                    var acceptCookiesButton = driver.FindElement(By.CssSelector(".btn-accept-cookie-banner"));
+                    acceptCookiesButton.Click();
+                }
+                catch
+                {
+                    totalCountStravaLoad++;
+                    goto retryStravaLoad;
+                }
 
                 // Set email for login
                 var emailText = driver.FindElement(By.Id("email"));
@@ -128,7 +143,7 @@ namespace LikeAllStrava
                             // check if it is not owns user workout
                             var element1 = GetParentElement(GetParentElement(GetParentElement(GetParentElement(GetParentElement(button)))));
                             var str = element1.GetAttribute("innerHTML");
-                            
+
                             // Check if this is not own user workout
                             if (!regexOwnWorkout.IsMatch(str))
                             {
