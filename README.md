@@ -1,7 +1,7 @@
 # LikeAllStrava
 
-Da like nos treinos da galera porque quando se
-segue muito gente fica dificil de dar like em todo mundo!!
+Give kudos in people's workouts because when 
+we follow too much people it is hard to like all workouts!!
 
-Colocar seu login/senha/nome completo nas variáveis logo
-no inicio do programa.
+In first run the application will ask for you login (email),
+password and complete name in Strava and save it encrypted for next runs.

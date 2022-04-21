@@ -1,5 +1,10 @@
 ﻿using OpenQA.Selenium;
+using System.Text.Json;
+using System.Diagnostics;
 using OpenQA.Selenium.Chrome;
+using System.Text.RegularExpressions;
+using System.Text.Json.Serialization;
+using Microsoft.Extensions.Configuration;
 
 namespace LikeAllStrava
 {
@@ -9,27 +14,68 @@ namespace LikeAllStrava
         {
             try
             {
-                // Seu login do strava, senha e nome completo do perfil
-                string login = "dliedke@gmail.com";
-                string password = "";
-                string nomeCompleto = "Daniel Carvalho Liedke";
+                // Load configuration file
+                IConfiguration config = new ConfigurationBuilder()
+                                           .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                                           .AddEnvironmentVariables()
+                                           .AddCommandLine(args)
+                                           .Build();
+                StravaSettings stravaSettings = config.GetRequiredSection("StravaSettings").Get<StravaSettings>();
 
-                // Fecha qualquer ChromeDriver aberto
-                FechaChromeDrivers();
+                // If we still don't have login data, get from the use and save it
+                if (string.IsNullOrEmpty(stravaSettings.Login))
+                {
+                    // Ask for login
+                    while (string.IsNullOrEmpty(stravaSettings.Login))
+                    {
+                        Console.WriteLine("Please enter your Strava login (email):");
+                        stravaSettings.Login = Console.ReadLine();
+                    }
+                    stravaSettings.Login = Encryption.EncryptString(stravaSettings.Login);
 
-                // Inicializa o ChromeDriver com zero logs
+                    // Ask for password
+                    while (string.IsNullOrEmpty(stravaSettings.Password))
+                    {
+                        Console.WriteLine("Please enter your Strava password:");
+                        stravaSettings.Password = Console.ReadLine();
+                    }
+                    stravaSettings.Password = Encryption.EncryptString(stravaSettings.Password);
+
+                    // Ask for full name
+                    while (string.IsNullOrEmpty(stravaSettings.FullName))
+                    {
+                        Console.WriteLine("Please enter your full name in Strava:");
+                        stravaSettings.FullName = Console.ReadLine();
+                    }
+                    stravaSettings.FullName = Encryption.EncryptString(stravaSettings.FullName);
+
+                    // Save everything
+                    Settings settings = new();
+                    settings.StravaSettings = stravaSettings;
+                    SaveConfigFile(settings);
+                }
+
+                // Strava login, password and full name
+                string? login = Encryption.DecryptString(stravaSettings.Login);
+                string? password = Encryption.DecryptString(stravaSettings.Password);
+                string? fullName = Encryption.DecryptString(stravaSettings.FullName);
+
+                // Close all ChromeDrivers open
+                CloseAllChromeDrivers();
+
+                // Initialize ChromeDriver with no logs
                 string currentRuntimeDirectory = AppContext.BaseDirectory;
                 ChromeDriverService service = ChromeDriverService.CreateDefaultService(currentRuntimeDirectory);
-                service.SuppressInitialDiagnosticInformation = true;  // Desabilita logs
-                service.EnableVerboseLogging = false;                 // Desabilita logs
-                service.EnableAppendLog = false;                      // Desabilita logs
-                service.HideCommandPromptWindow = true;               // Esconde janela
+                service.SuppressInitialDiagnosticInformation = true;  // Disable logs
+                service.EnableVerboseLogging = false;                 // Disable logs
+                service.EnableAppendLog = false;                      // Disable logs
+                service.HideCommandPromptWindow = true;               // Hide window
                 IWebDriver driver = new ChromeDriver(service);
                 IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
 
-                Console.WriteLine("Iniciando login no Strava...");
+                Console.WriteLine("Beginning Strava Login...");
 
-                // Abre o Strava (3x para garantir melhor carregamento da página)
+                // Open Strava (3x to ensure correct page loading)
                 driver.Url = "https://www.strava.com/login";
                 System.Threading.Thread.Sleep(1000);
                 driver.Url = "https://www.strava.com/login";
@@ -37,54 +83,63 @@ namespace LikeAllStrava
                 driver.Url = "https://www.strava.com/login";
                 System.Threading.Thread.Sleep(1000);
 
-                // Click no botão de aceitar os cookies
+                // Accept cookies button click
                 var acceptCookiesButton = driver.FindElement(By.CssSelector(".btn-accept-cookie-banner"));
                 acceptCookiesButton.Click();
 
-                // Seta email para login 
+                // Set email for login
                 var emailText = driver.FindElement(By.Id("email"));
                 emailText.SendKeys(login);
 
-                // Seta senha para login 
+                // Set password for login
                 var passwordText = driver.FindElement(By.Id("password"));
                 passwordText.SendKeys(password);
 
-                // Aperta no botão de login
+                // Click in the login button
                 var loginButton = driver.FindElement(By.Id("login-button"));
                 loginButton.Click();
 
-                // Espera um pouco pra logar e verifica se elemento carregou
+                // Wait a but and check if page loaded
                 System.Threading.Thread.Sleep(2000);
                 WebDriverExtensions.WaitExtension.WaitUntilElement(driver, By.XPath("//*[@data-testid='entry-header']"), 15);
                 System.Threading.Thread.Sleep(2000);
-                Console.WriteLine("Completado login no Strava");
+                Console.WriteLine("Completed Strava login");
 
-                int totalCartoesTreinamento = 0;
+                int totalCardsWorkout = 0;
+
+                // Regex to check if workout is from own user
+                Regex regexOwnWorkout = new($@"<a href=""/athletes/[\d]+"" data-testid=""owners-name"">{fullName}</a>", RegexOptions.Compiled);
 
             retry:
 
                 try
                 {
-                    // Encontra todos botoes de like ainda não clicados
-                    var botoesLike = driver.FindElements(By.CssSelector("[data-testid='unfilled_kudos']"));
-                    foreach (var botao in botoesLike)
+                    // Find all like buttons not yet clicked (svg html tags)
+                    var likeElements = driver.FindElements(By.CssSelector("[data-testid='unfilled_kudos']"));
+                    foreach (var element in likeElements)
                     {
                         try
                         {
-                            // Busca o html do card do treino pra ver se não 
-                            // é treino do próprio usuário
-                            var element1 = GetParent(GetParent(GetParent(GetParent(GetParent(GetParent(botao))))));
+                            // The unfilled_kudos is an svg, retrieve the parent button
+                            IWebElement button;
+                            button = GetParentElement(element);
+
+                            // Get the card html of the workout to
+                            // check if it is not owns user workout
+                            var element1 = GetParentElement(GetParentElement(GetParentElement(GetParentElement(GetParentElement(button)))));
                             var str = element1.GetAttribute("innerHTML");
-                            if (!str.Contains(@$"data-testid=""owners-name"">{nomeCompleto}</a>"))
+                            
+                            // Check if this is not own user workout
+                            if (!regexOwnWorkout.IsMatch(str))
                             {
-                                // Faz scroll até o botão de like
-                                Console.Write("Encontrado treino pra dar like...");
-                                ScrollToElement(js, botao);
+                                // Scroll to the like button
+                                Console.Write("Finding workout to give kudos...");
+                                ScrollToElement(js, button);
                                 System.Threading.Thread.Sleep(500);
 
-                                // Clica nos botões de like e espera 3s pra não ser 
-                                // bloqueado pelo Strava
-                                js.ExecuteScript("var evt = document.createEvent('MouseEvents');" + "evt.initMouseEvent('click',true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0,null);" + "arguments[0].dispatchEvent(evt);", botao);
+                                // Click in the like button and waits 3s to not be
+                                // blocked by Strava
+                                js.ExecuteScript("var evt = document.createEvent('MouseEvents');" + "evt.initMouseEvent('click',true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0,null);" + "arguments[0].dispatchEvent(evt);", button);
                                 Console.WriteLine("LIKED!");
                                 System.Threading.Thread.Sleep(3000);
                             }
@@ -94,37 +149,51 @@ namespace LikeAllStrava
                 }
                 catch { }
 
-                // Faz scroll até o final da página para carregar mais conteúdo e aguarda
-                Console.WriteLine("Fazendo scroll para carregar mais conteúdo...");
+                // Scroll to the bottom of the page to load more content and wait
+                Console.WriteLine("Scrolling to load more content...");
                 ScrollToBottom(js);
 
-                // Pega o total de cards com treinos
-                var cards = driver.FindElements(By.CssSelector(".react-card-container"));
-                int totalCartoesAgora = cards.Count;
+                // Get the cards with workouts
+                var cards = driver.FindElements(By.CssSelector(".Feed--entry-container--ntrEd"));
+                int totalCardsNow = cards.Count;
 
-                // Repete scroll até não ter mais novos treinos na página
-                if (totalCartoesAgora != totalCartoesTreinamento)
+                // Repeat scroll until no more new workouts on page are found
+                if (totalCardsNow != totalCardsWorkout)
                 {
-                    totalCartoesTreinamento = totalCartoesAgora;
+                    totalCardsWorkout = totalCardsNow;
                     goto retry;
                 }
 
-                Console.WriteLine("Terminado! Obrigado!");
+                Console.WriteLine("Finished! Thanks!");
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error na automação (talvez dados errados de login?): " + ex.ToString());
+                Console.WriteLine("Automation error (maybe wrong login data?): " + ex.ToString());
             }
             finally
             {
-                // Fecha o ChromeDriver e sai
-                FechaChromeDrivers();
+                // Close all ChromeDrivers open and exit
+                CloseAllChromeDrivers();
             }
         }
 
-        public static IWebElement GetParent(IWebElement e)
+        private static void SaveConfigFile(Settings settings)
         {
-            // Busca elemento pai
+            // Write idented json file
+            var jsonWriteOptions = new JsonSerializerOptions()
+            {
+                WriteIndented = true
+            };
+            jsonWriteOptions.Converters.Add(new JsonStringEnumConverter());
+
+            // Serialize settings and save in appsettings.json in the application path
+            var newJson = JsonSerializer.Serialize(settings, jsonWriteOptions);
+            var appSettingsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
+            File.WriteAllText(appSettingsPath, newJson);
+        }
+
+        public static IWebElement GetParentElement(IWebElement e)
+        {
             return e.FindElement(By.XPath(".."));
         }
 
@@ -132,7 +201,6 @@ namespace LikeAllStrava
         {
             try
             {
-                // Faz scroll até o elemento
                 if (element.Location.Y > 200)
                 {
                     js.ExecuteScript($"window.scrollTo({0}, {element.Location.Y - 600 })");
@@ -141,18 +209,18 @@ namespace LikeAllStrava
             catch { }
         }
 
-        private static void FechaChromeDrivers()
+        private static void CloseAllChromeDrivers()
         {
-            // Fecha todos processos do ChromeDriver
-            System.Diagnostics.Process.Start("taskkill", "/F /IM chromedriver.exe /T");
+            // Close all ChromeDrivers open
+            Process process = Process.Start("taskkill", "/F /IM chromedriver.exe /T");
+            process.WaitForExit();
         }
 
         private static void ScrollToBottom(IJavaScriptExecutor js)
         {
-            // Faz scroll até o final da página e aguarda 5s carregar
+            // Scroll to the end of the page and wait 5s
             js.ExecuteScript("window.scrollTo(0, document.body.scrollHeight);");
             Thread.Sleep(5000);
         }
     }
 }
-
