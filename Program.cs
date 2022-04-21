@@ -167,16 +167,11 @@ namespace LikeAllStrava
 
                 // Scroll to the bottom of the page to load more content and wait
                 Console.WriteLine("Scrolling to load more content...");
-                ScrollToBottom(driver, js);
-
-                // Get the cards with workouts
-                var cards = driver.FindElements(By.CssSelector(".Feed--entry-container--ntrEd"));
-                int totalCardsNow = cards.Count;
+                bool pageFinished = ScrollToBottom(driver, js);
 
                 // Repeat scroll until no more new workouts on page are found
-                if (totalCardsNow != totalCardsWorkout)
+                if (!pageFinished)
                 {
-                    totalCardsWorkout = totalCardsNow;
                     goto retry;
                 }
 
@@ -228,13 +223,15 @@ namespace LikeAllStrava
         private static void CloseAllChromeDrivers()
         {
             // Close all ChromeDrivers open
+            Console.WriteLine("Closing all ChromeDriver processes open...");
             Process process = Process.Start("taskkill", "/F /IM chromedriver.exe /T");
             process.WaitForExit();
+            Console.WriteLine("DONE!");
         }
 
-        private static void ScrollToBottom(IWebDriver driver, IJavaScriptExecutor js)
+        private static bool ScrollToBottom(IWebDriver driver, IJavaScriptExecutor js)
         {
-            // Get the cards to find total workouts in the page
+            // Get the cards to find total number of workouts in the page
             var cards = driver.FindElements(By.CssSelector(".Feed--entry-container--ntrEd"));
             int totalCardsWorkout = cards.Count;
 
@@ -244,17 +241,26 @@ namespace LikeAllStrava
             int retries = 0;
             wait:
 
-            // Get the cards to find total workouts in the page now
+            // Get the cards to find total number of workouts in the page now
             cards = driver.FindElements(By.CssSelector(".Feed--entry-container--ntrEd"));
             int totalCardsNow = cards.Count;
 
             // Check if more workouts were loaded
             // if not, wait a bit more
-            if (totalCardsNow == totalCardsWorkout && retries < 6)
+            if (totalCardsNow == totalCardsWorkout && retries < 10)
             {
                 System.Threading.Thread.Sleep(500);
                 retries++;
                 goto wait;
+            }
+
+            if (retries == 10)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
     }
