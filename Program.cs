@@ -5,6 +5,7 @@ using OpenQA.Selenium.Chrome;
 using System.Text.RegularExpressions;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Configuration;
+using OpenQA.Selenium.Support.UI;
 
 namespace LikeAllStrava
 {
@@ -70,7 +71,10 @@ namespace LikeAllStrava
                 service.EnableVerboseLogging = false;                 // Disable logs
                 service.EnableAppendLog = false;                      // Disable logs
                 service.HideCommandPromptWindow = true;               // Hide window
-                IWebDriver driver = new ChromeDriver(service);
+                ChromeOptions options = new();
+                options.AddArgument("--no-sandbox");                  // Use same profile as the user
+                options.AddArgument("--disable-gpu");                 // Disable hardware acceleration because it shows washed out Strava sometimes
+                IWebDriver driver = new ChromeDriver(service, options);
                 IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
 
                 Console.WriteLine("Beginning Strava Login...");
@@ -115,9 +119,7 @@ namespace LikeAllStrava
                 loginButton.Click();
 
                 // Wait a but and check if page loaded
-                System.Threading.Thread.Sleep(2000);
                 WebDriverExtensions.WaitExtension.WaitUntilElement(driver, By.XPath("//*[@data-testid='entry-header']"), 15);
-                System.Threading.Thread.Sleep(2000);
                 Console.WriteLine("Completed Strava login");
 
                 int totalCardsWorkout = 0;
@@ -150,8 +152,7 @@ namespace LikeAllStrava
                                 // Scroll to the like button
                                 Console.Write("Finding workout to give kudos...");
                                 ScrollToElement(js, button);
-                                System.Threading.Thread.Sleep(500);
-
+                                
                                 // Click in the like button and waits 3s to not be
                                 // blocked by Strava
                                 js.ExecuteScript("var evt = document.createEvent('MouseEvents');" + "evt.initMouseEvent('click',true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0,null);" + "arguments[0].dispatchEvent(evt);", button);
@@ -166,7 +167,7 @@ namespace LikeAllStrava
 
                 // Scroll to the bottom of the page to load more content and wait
                 Console.WriteLine("Scrolling to load more content...");
-                ScrollToBottom(js);
+                ScrollToBottom(driver, js);
 
                 // Get the cards with workouts
                 var cards = driver.FindElements(By.CssSelector(".Feed--entry-container--ntrEd"));
@@ -231,11 +232,30 @@ namespace LikeAllStrava
             process.WaitForExit();
         }
 
-        private static void ScrollToBottom(IJavaScriptExecutor js)
+        private static void ScrollToBottom(IWebDriver driver, IJavaScriptExecutor js)
         {
-            // Scroll to the end of the page and wait 5s
+            // Get the cards to find total workouts in the page
+            var cards = driver.FindElements(By.CssSelector(".Feed--entry-container--ntrEd"));
+            int totalCardsWorkout = cards.Count;
+
+            // Scroll to the end of the page
             js.ExecuteScript("window.scrollTo(0, document.body.scrollHeight);");
-            Thread.Sleep(5000);
+
+            int retries = 0;
+            wait:
+
+            // Get the cards to find total workouts in the page now
+            cards = driver.FindElements(By.CssSelector(".Feed--entry-container--ntrEd"));
+            int totalCardsNow = cards.Count;
+
+            // Check if more workouts were loaded
+            // if not, wait a bit more
+            if (totalCardsNow == totalCardsWorkout && retries < 6)
+            {
+                System.Threading.Thread.Sleep(500);
+                retries++;
+                goto wait;
+            }
         }
     }
 }
