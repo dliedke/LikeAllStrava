@@ -72,6 +72,7 @@ namespace LikeAllStrava
                 service.EnableAppendLog = false;                      // Disable logs
                 service.HideCommandPromptWindow = true;               // Hide window
                 ChromeOptions options = new();
+                options.AddArgument("start-maximized");               // Start Chrome window maximized
                 options.AddArgument("--no-sandbox");                  // Use same profile as the user
                 options.AddArgument("--disable-gpu");                 // Disable hardware acceleration because it shows washed out Strava sometimes
                 IWebDriver driver = new ChromeDriver(service, options);
@@ -121,8 +122,6 @@ namespace LikeAllStrava
                 // Wait a but and check if page loaded
                 WebDriverExtensions.WaitExtension.WaitUntilElement(driver, By.XPath("//*[@data-testid='entry-header']"), 15);
                 Console.WriteLine("Completed Strava login");
-
-                int totalCardsWorkout = 0;
 
                 // Regex to check if workout is from own user
                 Regex regexOwnWorkout = new($@"<a href=""/athletes/[\d]+"" data-testid=""owners-name"">{fullName}</a>", RegexOptions.Compiled);
