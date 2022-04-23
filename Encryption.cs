@@ -1,4 +1,7 @@
-﻿using System.Text;
+﻿// This class is used to encrypt and decrypt strings
+// for the config file
+
+using System.Text;
 using System.Security.Cryptography;
 
 namespace LikeAllStrava
