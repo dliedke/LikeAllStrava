@@ -10,4 +10,4 @@ Just enter parameters followpeople with the URL of the athlete in the following 
 
 LikeAllStrava followpeople https://www.strava.com/athletes/9954999/follows?type=following
 
-Remember that if you abuse of this application use you will be temporary blocked from giving kudos in the Strava platform.
+Remember that if you use too much this application you will be temporary blocked from giving kudos in the Strava platform.
