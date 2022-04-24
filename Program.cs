@@ -88,7 +88,7 @@ namespace LikeAllStrava
         private static void RequestLoginData()
         {
             // If we still don't have login data, get from the user and save it
-            if (string.IsNullOrEmpty(_stravaSettings.Login))
+            if (_stravaSettings!=null && string.IsNullOrEmpty(_stravaSettings.Login))
             {
                 // Ask user for Strava login and encrypt it
                 while (string.IsNullOrEmpty(_stravaSettings.Login))
