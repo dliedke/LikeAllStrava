@@ -268,9 +268,12 @@ namespace LikeAllStrava
                 var requestToFollowButtons = _chromeDriver.FindElements(By.XPath("//*[@data-state='follow_with_approval']"));
                 var followButtons = _chromeDriver.FindElements(By.XPath("//*[@data-state='follow']"));
 
-                // No more follow buttons, so exit
-                if ((requestToFollowButtons == null && followButtons == null) ||
-                   (requestToFollowButtons?.Count == 0 && followButtons?.Count == 0))
+                // Get all unfollow buttons
+                var unfollowButtons = _chromeDriver.FindElements(By.XPath("//*[@data-state='unfollow']"));
+
+                // No more follow/unfollow buttons, so exit
+                if ((requestToFollowButtons == null && followButtons == null && unfollowButtons == null) ||
+                   (requestToFollowButtons?.Count == 0 && followButtons?.Count == 0 && unfollowButtons?.Count == 0))
                 {
                     break;
                 }
