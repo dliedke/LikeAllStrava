@@ -271,9 +271,9 @@ namespace LikeAllStrava
                 // Get all unfollow buttons
                 var unfollowButtons = _chromeDriver.FindElements(By.XPath("//*[@data-state='unfollow']"));
 
-                // No more follow/unfollow buttons, so exit
+                // No more follow buttons and just on unfollow buttons, so exit
                 if ((requestToFollowButtons == null && followButtons == null && unfollowButtons == null) ||
-                   (requestToFollowButtons?.Count == 0 && followButtons?.Count == 0 && unfollowButtons?.Count == 0))
+                   (requestToFollowButtons?.Count == 0 && followButtons?.Count == 0 && unfollowButtons?.Count == 1))
                 {
                     break;
                 }
