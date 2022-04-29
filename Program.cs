@@ -18,6 +18,7 @@ namespace LikeAllStrava
         private static string? _login;
         private static string? _password;
         private static string? _fullName;
+        private static string? _urlFollowPeople;
 
         static void Main(string[] args)
         {
@@ -28,11 +29,17 @@ namespace LikeAllStrava
                 {
                     // Parameters should be followpeople and then URL
                     // Example of url: https://www.strava.com/athletes/9954999/follows?type=following
+                    // If we don't have the url, ask the user
+
                     string url = string.Empty;
-                    if (!(args.Length == 2 && args[0] == "followpeople" && !string.IsNullOrEmpty(args[1])))
+                    if (args.Length == 1 && args[0] == "followpeople")
                     {
-                        Console.WriteLine("\r\nUsage: LikeAllStrava followpeople [url of athlete when clicking in following tab]\r\n");
-                        return;
+                        Console.WriteLine("\r\nPlease enter Strava URL of athlete when in the \"Following\" tab:");
+                        _urlFollowPeople = Console.ReadLine();
+                    }
+                    if (args.Length == 2 && args[0] == "followpeople")
+                    {
+                        _urlFollowPeople = args[1];
                     }
                 }
 
@@ -46,15 +53,9 @@ namespace LikeAllStrava
                 StravaLogin();
 
                 // Check if we need to follow more people
-                if (args.Length > 0)
+                if (args.Length > 0 && args[0] == "followpeople" && !string.IsNullOrEmpty(_urlFollowPeople))
                 {
-                    string url = string.Empty;
-                    if (args.Length == 2 && args[0] == "followpeople" && !string.IsNullOrEmpty(args[1]))
-                    {
-                        url = args[1];
-                        FollowPeople(url);
-                        return;
-                    }
+                    FollowPeople(_urlFollowPeople);
                 }
 
                 // Like all the workouts in the Strava newsfeed
