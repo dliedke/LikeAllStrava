@@ -55,11 +55,14 @@ namespace LikeAllStrava
                 // Check if we need to follow more people
                 if (args.Length > 0 && args[0] == "followpeople" && !string.IsNullOrEmpty(_urlFollowPeople))
                 {
+                    // Call automation to follow more people
                     FollowPeople(_urlFollowPeople);
                 }
-
-                // Like all the workouts in the Strava newsfeed
-                LikeWorkouts();
+                else
+                {
+                    // Like all the workouts in the Strava newsfeed
+                    LikeWorkouts();
+                }
 
                 Console.WriteLine("Finished! Thanks!");
             }
@@ -76,7 +79,7 @@ namespace LikeAllStrava
 
         private static void InitializeConfig(string[] args)
         {
-            // Load configuration file with login, password and full name in strava
+            // Load configuration file with login, password and full name for Strava
             IConfiguration config = new ConfigurationBuilder()
                                        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                                        .AddEnvironmentVariables()
@@ -126,15 +129,18 @@ namespace LikeAllStrava
         {
             // Initialize ChromeDriver with no logs at all
             string currentRuntimeDirectory = AppContext.BaseDirectory;
+            
             ChromeDriverService service = ChromeDriverService.CreateDefaultService(currentRuntimeDirectory);
             service.SuppressInitialDiagnosticInformation = true;  // Disable logs
             service.EnableVerboseLogging = false;                 // Disable logs
             service.EnableAppendLog = false;                      // Disable logs
             service.HideCommandPromptWindow = true;               // Hide window
+
             ChromeOptions options = new();
             options.AddArgument("start-maximized");               // Start Chrome window maximized
             options.AddArgument("--no-sandbox");                  // Use same profile as the user
             options.AddArgument("--disable-gpu");                 // Disable hardware acceleration because it shows washed out Strava sometimes in HDR screens
+            
             _chromeDriver = new ChromeDriver(service, options);
             _javascriptExecutor = (IJavaScriptExecutor)_chromeDriver;
         }
@@ -163,7 +169,8 @@ namespace LikeAllStrava
                 // Error loading Strava (tried 3 times already)
                 if (totalCountStravaLoad == 3)
                 {
-                    Console.WriteLine("Error: Could not load Strava.");
+                    Console.WriteLine("Error: Could not login into Strava.");
+                    CloseAllChromeDrivers();
                     Environment.Exit(-1);
                 }
 
@@ -195,6 +202,10 @@ namespace LikeAllStrava
 
             // Wait a bit and check if page is loaded finding an element
             WebDriverExtensions.WaitExtension.WaitUntilElement(_chromeDriver, By.XPath("//*[@data-testid='entry-header']"), 15);
+
+            // Refresh page because sometimes the pictures are not loaded 
+            _chromeDriver.Navigate().Refresh();
+
             Console.WriteLine("Completed Strava login");
         }
 
@@ -253,11 +264,11 @@ namespace LikeAllStrava
 
         private static void FollowPeople(string url)
         {
-            // Add page in the url as parameter
+            // Add page in the url as parameter to go through all pages
             url += "&page={0}";
             int page = 1;
 
-            // Loop throgh all the pages
+            // Loop through all the pages
             while (true)
             {
                 // Navigate to the athlete page to follow more people
@@ -272,14 +283,14 @@ namespace LikeAllStrava
                 // Get all unfollow buttons
                 var unfollowButtons = _chromeDriver.FindElements(By.XPath("//*[@data-state='unfollow']"));
 
-                // No more follow buttons and just on unfollow buttons, so exit
+                // No more follow buttons and just one unfollow button, so exit
                 if ((requestToFollowButtons == null && followButtons == null && unfollowButtons == null) ||
                    (requestToFollowButtons?.Count == 0 && followButtons?.Count == 0 && unfollowButtons?.Count == 1))
                 {
                     break;
                 }
 
-                // If we have request to follow buttons, click on them and wait 2s
+                // If we have "Request to Follow" buttons, click on them and wait 2s
                 if (requestToFollowButtons != null && requestToFollowButtons.Count > 0)
                 {
                     foreach (var button in requestToFollowButtons)
@@ -289,7 +300,7 @@ namespace LikeAllStrava
                     }
                 }
 
-                // If we have follow buttons, click on them and wait 2s
+                // If we have "Follow" buttons, click on them and wait 2s
                 if (followButtons != null && followButtons.Count > 0)
                 {
                     foreach (var button in followButtons)
@@ -303,7 +314,7 @@ namespace LikeAllStrava
                 page++;
             }
 
-            Console.WriteLine($"Complete following more people! Thanks!");
+            Console.WriteLine($"Completed following more people! Thanks!");
         }
 
         private static void SaveConfigFile(Settings settings)
@@ -334,8 +345,8 @@ namespace LikeAllStrava
             {
                 if (element.Location.Y > 200)
                 {
-                    // Scroll page until the element
-                    _javascriptExecutor.ExecuteScript($"window.scrollTo({0}, {element.Location.Y - 600 })");
+                    // Scroll page until the element but showing the workout pictures
+                    _javascriptExecutor.ExecuteScript($"window.scrollTo({0}, {element.Location.Y - 700 })");
                 }
             }
             catch { }
