@@ -201,7 +201,7 @@ namespace LikeAllStrava
             loginButton.Click();
 
             // Wait a bit and check if page is loaded finding an element
-            WebDriverExtensions.WaitExtension.WaitUntilElement(_chromeDriver, By.XPath("//*[@data-testid='entry-header']"), 15);
+            WebDriverExtensions.WaitExtension.WaitUntilElement(_chromeDriver, By.XPath("//*[@data-testid='web-feed-entry']"), 15);
 
             // Refresh page because sometimes the pictures are not loaded 
             _chromeDriver.Navigate().Refresh();
@@ -346,7 +346,7 @@ namespace LikeAllStrava
                 if (element.Location.Y > 200)
                 {
                     // Scroll page until the element but showing the workout pictures
-                    _javascriptExecutor.ExecuteScript($"window.scrollTo({0}, {element.Location.Y - 700 })");
+                    _javascriptExecutor.ExecuteScript($"window.scrollTo({0}, {element.Location.Y - 650 })");
                 }
             }
             catch { }
