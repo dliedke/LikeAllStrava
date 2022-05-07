@@ -19,6 +19,7 @@ namespace LikeAllStrava
         private static string? _password;
         private static string? _fullName;
         private static string? _urlFollowPeople;
+        private static string? _messageCongratsLongRun;
 
         static void Main(string[] args)
         {
@@ -27,11 +28,10 @@ namespace LikeAllStrava
                 // Validate command-line parameters if we have them
                 if (args.Length > 0)
                 {
-                    // Parameters should be followpeople and then URL
+                    // Parameters can be followpeople and then URL
                     // Example of url: https://www.strava.com/athletes/9954999/follows?type=following
                     // If we don't have the url, ask the user
 
-                    string url = string.Empty;
                     if (args.Length == 1 && args[0] == "followpeople")
                     {
                         Console.WriteLine("\r\nPlease enter Strava URL of athlete when in the \"Following\" tab:");
@@ -40,6 +40,20 @@ namespace LikeAllStrava
                     if (args.Length == 2 && args[0] == "followpeople")
                     {
                         _urlFollowPeople = args[1];
+                    }
+
+                    // Parameters can be congratslongrun and then message (placeholder [name] will be first name of the athlete)
+                    // Example of parameters: congratslongrun "Congratulations for the long run [name]!"
+                    // If we don't have the message, ask the user
+
+                    if (args.Length == 1 && args[0] == "congratslongrun")
+                    {
+                        Console.WriteLine("\r\nPlease enter congratulations message for the long run (use [name] as first name of the athlete to be replaced):");
+                        _messageCongratsLongRun = Console.ReadLine();
+                    }
+                    if (args.Length == 2 && args[0] == "congratslongrun")
+                    {
+                        _messageCongratsLongRun = args[1];
                     }
                 }
 
@@ -58,7 +72,13 @@ namespace LikeAllStrava
                     // Call automation to follow more people
                     FollowPeople(_urlFollowPeople);
                 }
-                else
+                // Check if we need to congratulate the people for the long run
+                else if (args.Length > 0 && args[0] == "congratslongrun" && !string.IsNullOrEmpty(_messageCongratsLongRun))
+                {
+                    // Call automation to add congratulations comments for long runs
+                    CongratsLongRun();
+                }
+                else 
                 {
                     // Like all the workouts in the Strava newsfeed
                     LikeWorkouts();
@@ -209,6 +229,113 @@ namespace LikeAllStrava
             Console.WriteLine("Completed Strava login");
         }
 
+        private static void CongratsLongRun()
+        {
+            // Regex to check if the workout is from own user so it should not be liked
+            Regex regexOwnWorkout = new($@"<a href=""/athletes/[\d]+"" data-testid=""owners-name"">{_fullName}</a>", RegexOptions.Compiled);
+
+            // Regex to get distance
+            // TODO: support english as well
+            Regex regexFindKms = new($@"Distância<\/span><div class=""Stat--stat-value--g-Ge3 "">([\d,]+)<abbr class=""unit"" title=""quilômetros""> km");
+
+            // Regex to get athlete name
+            Regex regexAthleteName = new($@"<a href=""\/athletes\/[\d]+"" data-testid=""owners-name"">([\w ]+)<\/a>");
+
+            // Load maximum of entries at once
+            _chromeDriver.Url = "https://www.strava.com/dashboard?num_entries=600";
+
+            // Wait a bit and check if page is loaded finding an element
+            WebDriverExtensions.WaitExtension.WaitUntilElement(_chromeDriver, By.XPath("//*[@data-testid='web-feed-entry']"), 15);
+
+            try
+            {
+                // Find all comment buttons
+                var addCommentElements = _chromeDriver.FindElements(By.CssSelector("[data-testid='comment_button']"));
+                foreach (var addCommentButton in addCommentElements)
+                {
+                    try
+                    {
+                        // Retrieve the parent button
+                        IWebElement button;
+                        button = GetParentElement(addCommentButton);
+
+                        // Get the card html of the workout
+                        var element1 = GetParentElement(GetParentElement(GetParentElement(GetParentElement(button))));
+                        var str = element1.GetAttribute("innerHTML");
+
+                        // Check if this is not own user workout
+                        // And this is a run workout
+                        if (!regexOwnWorkout.IsMatch(str) && 
+                            (str.Contains(@"title=""Corrida""") ||
+                             str.Contains(@"title=""Run""")))
+                        {
+                            // Find total kms ran
+                            Match matchKms = regexFindKms.Match(str);
+                            if (matchKms.Success)
+                            {
+                                if (matchKms.Groups.Count > 1)
+                                {
+                                    // If the workout was 10km or more
+                                    bool successParsingKms = float.TryParse(matchKms.Groups[1].Value, out float kms);
+                                    if (successParsingKms && kms >= 10)
+                                    {
+                                        // Retrieve athlete first name
+                                        string athleteFirstname = string.Empty;
+                                        Match athleteNameMatch = regexAthleteName.Match(str);
+                                        if (athleteNameMatch.Success && matchKms.Groups.Count > 1)
+                                        {
+                                            athleteFirstname = athleteNameMatch.Groups[1].Value.Split(' ')[0];
+                                        }
+
+                                        // Scroll to the comment button
+                                        Console.WriteLine("Found long run to add comment...");
+                                        ScrollToElement(addCommentButton);
+                                        System.Threading.Thread.Sleep(1000);
+
+                                        // Click in the comment button using javascript
+                                        // then waits 1s 
+                                        addCommentButton.Click();
+                                        Console.WriteLine("Adding comment...");
+                                        System.Threading.Thread.Sleep(1000);
+
+                                        // Find the comment box
+                                        var elementCommentTextBox = _chromeDriver.FindElement(By.XPath("//textarea[@placeholder='Adicione um comentário, @ para mencionar']"));
+                                        if (elementCommentTextBox != null)
+                                        {
+                                            // Scroll to comment box 
+                                            ScrollToElement(elementCommentTextBox);
+                                            System.Threading.Thread.Sleep(1000);
+
+                                            // Type the comment message
+                                            // replacing the [name] tag with athlete first name found
+                                            elementCommentTextBox.SendKeys(_messageCongratsLongRun?.Replace("[name]", athleteFirstname));
+
+                                            // Find button to post and click on it
+                                            var publishButton = _chromeDriver.FindElement(By.CssSelector("[data-testid='post-comment-btn']"));
+                                            if (publishButton != null)
+                                            {
+                                                // Publish the comment
+                                                publishButton.Click();
+                                                Console.WriteLine("Comment published!");
+
+                                                // Close the comment box
+                                                addCommentButton.Click();
+
+                                                // Wait 10s for user to review the comment
+                                                System.Threading.Thread.Sleep(10000);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+        }
+
         private static void LikeWorkouts()
         {
             // Regex to check if the workout is from own user so it should not be liked
@@ -241,7 +368,7 @@ namespace LikeAllStrava
 
                             // Click in the like button using javascript
                             // then waits 3s to not be blocked by Strava because of automation
-                            _javascriptExecutor.ExecuteScript("var evt = document.createEvent('MouseEvents');" + "evt.initMouseEvent('click',true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0,null);" + "arguments[0].dispatchEvent(evt);", button);
+                            ClickElementJavascript(button);
                             Console.WriteLine("LIKED!");
                             System.Threading.Thread.Sleep(3000);
                         }
@@ -331,6 +458,11 @@ namespace LikeAllStrava
             var newJson = JsonSerializer.Serialize(settings, jsonWriteOptions);
             var appSettingsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
             File.WriteAllText(appSettingsPath, newJson);
+        }
+
+        public static void ClickElementJavascript(IWebElement element)
+        {
+            _javascriptExecutor.ExecuteScript("var evt = document.createEvent('MouseEvents');" + "evt.initMouseEvent('click',true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0,null);" + "arguments[0].dispatchEvent(evt);", element);
         }
 
         public static IWebElement GetParentElement(IWebElement e)
