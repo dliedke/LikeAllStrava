@@ -24,7 +24,7 @@ congratslongrun "Congratulations for the long run [name]!"
 
 In case you don't provide the message in command line the application will request it.
 
-Note: emoticons are not supported due to Selenium limitations.
+Note: emoticons are not supported due to Selenium limitations (for post message and athlete names).
 
 # Use it wisely
 

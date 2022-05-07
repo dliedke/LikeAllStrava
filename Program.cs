@@ -1,4 +1,4 @@
-﻿// Program to like all workouts in the Strava feed
+﻿// Application to automate like all workouts in the Strava feed and more :)
 
 using OpenQA.Selenium;
 using System.Text.Json;
@@ -14,12 +14,12 @@ namespace LikeAllStrava
     {
         private static IWebDriver _chromeDriver;
         private static IJavaScriptExecutor _javascriptExecutor;
-        private static StravaSettings? _stravaSettings;
-        private static string? _login;
-        private static string? _password;
-        private static string? _fullName;
-        private static string? _urlFollowPeople;
-        private static string? _messageCongratsLongRun;
+        private static StravaSettings _stravaSettings = new();
+        private static string _login = string.Empty;
+        private static string _password = string.Empty;
+        private static string _fullName = string.Empty;
+        private static string _urlFollowPeople = string.Empty;
+        private static string _messageCongratsLongRun = string.Empty;
 
         static void Main(string[] args)
         {
@@ -168,9 +168,9 @@ namespace LikeAllStrava
         private static void StravaLogin()
         {
             // Decrypt the Strava login, password and full name
-            _login = Encryption.DecryptString(_stravaSettings?.Login);
-            _password = Encryption.DecryptString(_stravaSettings?.Password);
-            _fullName = Encryption.DecryptString(_stravaSettings?.FullName);
+            _login = Encryption.DecryptString(_stravaSettings.Login);
+            _password = Encryption.DecryptString(_stravaSettings.Password);
+            _fullName = Encryption.DecryptString(_stravaSettings.FullName);
 
             // Close all ChromeDriver processes open
             CloseAllChromeDrivers();
@@ -234,9 +234,9 @@ namespace LikeAllStrava
             // Regex to check if the workout is from own user so it should not be liked
             Regex regexOwnWorkout = new($@"<a href=""/athletes/[\d]+"" data-testid=""owners-name"">{_fullName}</a>", RegexOptions.Compiled);
 
-            // Regex to get distance
-            // TODO: support english as well
-            Regex regexFindKms = new($@"Distância<\/span><div class=""Stat--stat-value--g-Ge3 "">([\d,]+)<abbr class=""unit"" title=""quilômetros""> km");
+            // Regex to get distance in KMs
+            Regex regexFindKmsPT = new($@"Distância<\/span><div class=""Stat--stat-value--g-Ge3 "">([\d,]+)<abbr class=""unit"" title=""quilômetros""> km");
+            Regex regexFindKmsEN = new($@"Distance<\/span><div class=""Stat--stat-value--g-Ge3 "">([\d,]+)<abbr class=""unit"" title=""kilometers""> km");
 
             // Regex to get athlete name
             Regex regexAthleteName = new($@"<a href=""\/athletes\/[\d]+"" data-testid=""owners-name"">([\w ]+)<\/a>");
@@ -269,8 +269,12 @@ namespace LikeAllStrava
                             (str.Contains(@"title=""Corrida""") ||
                              str.Contains(@"title=""Run""")))
                         {
-                            // Find total kms ran
-                            Match matchKms = regexFindKms.Match(str);
+                            // Find total KMs ran
+                            Match matchKms = regexFindKmsPT.Match(str);
+                            if (!matchKms.Success)
+                            {
+                                matchKms = regexFindKmsEN.Match(str);
+                            }
                             if (matchKms.Success)
                             {
                                 if (matchKms.Groups.Count > 1)
@@ -287,13 +291,25 @@ namespace LikeAllStrava
                                             athleteFirstname = athleteNameMatch.Groups[1].Value.Split(' ')[0];
                                         }
 
+                                        // Replace the [name] tag with athlete first name found
+                                        string messageCongrats = _messageCongratsLongRun.Replace("[name]", athleteFirstname);
+
                                         // Scroll to the comment button
                                         Console.WriteLine("Found long run to add comment...");
                                         ScrollToElement(addCommentButton);
                                         System.Threading.Thread.Sleep(1000);
 
-                                        // Click in the comment button using javascript
-                                        // then waits 1s 
+                                        // Get the card html of the workout
+                                        var element2 = GetParentElement(GetParentElement(GetParentElement(GetParentElement(button))));
+                                        var str2 = element2.GetAttribute("innerHTML");
+
+                                        // If we already commented, do not add duplicated comment
+                                        if (str2.Contains(messageCongrats))
+                                        {
+                                            continue;
+                                        }
+
+                                        // Click in the comment button then waits 1s 
                                         addCommentButton.Click();
                                         Console.WriteLine("Adding comment...");
                                         System.Threading.Thread.Sleep(1000);
@@ -307,8 +323,7 @@ namespace LikeAllStrava
                                             System.Threading.Thread.Sleep(1000);
 
                                             // Type the comment message
-                                            // replacing the [name] tag with athlete first name found
-                                            elementCommentTextBox.SendKeys(_messageCongratsLongRun?.Replace("[name]", athleteFirstname));
+                                            elementCommentTextBox.SendKeys(messageCongrats);
 
                                             // Find button to post and click on it
                                             var publishButton = _chromeDriver.FindElement(By.CssSelector("[data-testid='post-comment-btn']"));
@@ -478,7 +493,7 @@ namespace LikeAllStrava
                 if (element.Location.Y > 200)
                 {
                     // Scroll page until the element but showing the workout pictures
-                    _javascriptExecutor.ExecuteScript($"window.scrollTo({0}, {element.Location.Y - 650 })");
+                    _javascriptExecutor.ExecuteScript($"window.scrollTo({0}, {element.Location.Y - 600 })");
                 }
             }
             catch { }
