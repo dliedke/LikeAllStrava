@@ -14,13 +14,17 @@ LikeAllStrava followpeople https://www.strava.com/athletes/9954999/follows?type=
 
 In case you don't provide the URL in command line the application will request it.
 
-# Congratulations for long run
+# Congratulations comment
 
-There is a feature to add comments for long runs.
+There is a feature to add congratulation comments for long runs / run races.
 
-Just enter parameter congratslongrun and then message (placeholder [name] will be first name of the athlete), example:
+Just enter parameter congratscomment and then message (placeholder [name] will be first name of the athlete), examples:
 
-congratslongrun "Congratulations for the long run [name]!"
+congratscomment "Congratulations for the long run [name]!"
+
+or 
+
+congratscomment "Congratulations for the run race [name]!"
 
 In case you don't provide the message in command line the application will request it.
 
