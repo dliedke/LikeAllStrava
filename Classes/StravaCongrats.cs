@@ -12,7 +12,7 @@ namespace LikeAllStrava
         private static readonly Regex _regexFindKmsEN = new($@"Distance<\/span><div class=""Stat--stat-value--g-Ge3 "">([\d,]+)<abbr class=""unit"" title=""kilometers""> km", RegexOptions.Compiled);
 
         // Regex to get athlete name
-        private static readonly Regex _regexAthleteName = new($@"<a href=""\/athletes\/[\d]+"" data-testid=""owners-name"">([\w ]+)<\/a>", RegexOptions.Compiled);
+        private static readonly Regex _regexAthleteName = new($@"<a href=""\/athletes\/[\d]+"" data-testid=""owners-name"">(.+?)<\/a>", RegexOptions.Compiled);
 
         public static void CongratsComment()
         {

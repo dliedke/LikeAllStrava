@@ -28,7 +28,7 @@ congratscomment "Congratulations for the run race [name]!"
 
 In case you don't provide the message in command line the application will request it.
 
-Note: emoticons are not supported due to Selenium limitations (for post message and athlete names).
+Note: Congrats message does not support emoticons due to Selenium limitations.
 
 # Use it wisely
 
