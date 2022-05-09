@@ -17,7 +17,7 @@ namespace LikeAllStrava
         public static void CongratsComment()
         {
             // Regex to check if the workout is from own user so it should not be liked
-            Regex _regexOwnWorkout = new($@"<a href=""/athletes/[\d]+"" data-testid=""owners-name"">{_s.StravaSettings.FullName}</a>", RegexOptions.Compiled);
+            Regex _regexOwnWorkout = new($@"<a href=""/athletes/[\d]+"" data-testid=""owners-name"">{_s.FullName}</a>", RegexOptions.Compiled);
 
             // Load maximum of entries at once
             _s.ChromeDriver.Url = "https://www.strava.com/dashboard?num_entries=600";

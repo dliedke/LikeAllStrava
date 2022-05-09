@@ -47,9 +47,10 @@ namespace LikeAllStrava
 
         public static void Login()
         {
-            // Decrypt the Strava login and password
+            // Decrypt the Strava login, password and full name
             _login = Encryption.DecryptString(_s.StravaSettings.Login);
             _password = Encryption.DecryptString(_s.StravaSettings.Password);
+            _s.FullName = Encryption.DecryptString(_s.StravaSettings.FullName);
 
             // Close all ChromeDriver processes open
             ChromeDriverControl.CloseAllChromeDrivers();

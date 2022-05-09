@@ -10,7 +10,7 @@ namespace LikeAllStrava
         public static void LikeWorkouts()
         {
             // Regex to check if the workout is from own user so it should not be liked
-            Regex regexOwnWorkout = new($@"<a href=""/athletes/[\d]+"" data-testid=""owners-name"">{_s.StravaSettings.FullName}</a>", RegexOptions.Compiled);
+            Regex regexOwnWorkout = new($@"<a href=""/athletes/[\d]+"" data-testid=""owners-name"">{_s.FullName}</a>", RegexOptions.Compiled);
 
         retry:
 
