@@ -1,4 +1,5 @@
-﻿using OpenQA.Selenium;
+﻿using TextCopy;
+using OpenQA.Selenium;
 using System.Text.RegularExpressions;
 
 using _s = LikeAllStrava.ShraredObjects;
@@ -20,15 +21,15 @@ namespace LikeAllStrava
             Regex _regexOwnWorkout = new($@"<a href=""/athletes/[\d]+"" data-testid=""owners-name"">{_s.FullName}</a>", RegexOptions.Compiled);
 
             // Load maximum of entries at once
-            _s.FirefoxDriver.Url = "https://www.strava.com/dashboard?num_entries=600";
+            _s.ChromeDriver.Url = "https://www.strava.com/dashboard?num_entries=600";
 
             // Wait a bit and check if page is loaded finding an element
-            WebDriverExtensions.WaitExtension.WaitUntilElement(_s.FirefoxDriver, By.XPath("//*[@data-testid='web-feed-entry']"), 15);
+            WebDriverExtensions.WaitExtension.WaitUntilElement(_s.ChromeDriver, By.XPath("//*[@data-testid='web-feed-entry']"), 15);
 
             try
             {
                 // Find all comment buttons
-                var addCommentElements = _s.FirefoxDriver.FindElements(By.CssSelector("[data-testid='comment_button']"));
+                var addCommentElements = _s.ChromeDriver.FindElements(By.CssSelector("[data-testid='comment_button']"));
                 foreach (var addCommentButton in addCommentElements)
                 {
                     try
@@ -93,19 +94,19 @@ namespace LikeAllStrava
                                         System.Threading.Thread.Sleep(1000);
 
                                         // Find the comment box
-                                        var elementCommentTextBox = _s.FirefoxDriver.FindElement(By.XPath("//textarea[@placeholder='Adicione um comentário, @ para mencionar']"));
+                                        var elementCommentTextBox = _s.ChromeDriver.FindElement(By.XPath("//textarea[@placeholder='Adicione um comentário, @ para mencionar']"));
                                         if (elementCommentTextBox != null)
                                         {
                                             // Scroll to comment box 
                                             Utilities.ScrollToElement(elementCommentTextBox);
                                             System.Threading.Thread.Sleep(1000);
 
-                                            // Type the comment message using javascript to allow emoticons
-                                            //Utilities.PopulateElementJs(elementCommentTextBox, messageCongrats);
-                                            elementCommentTextBox.SendKeys(messageCongrats);
+                                            // Use clipboard to copy+paste comment message in textarea to allow emoticons
+                                            ClipboardService.SetText(messageCongrats);
+                                            elementCommentTextBox.SendKeys(OpenQA.Selenium.Keys.Control + "v");
 
                                             // Find button to post and click on it
-                                            var publishButton = _s.FirefoxDriver.FindElement(By.CssSelector("[data-testid='post-comment-btn']"));
+                                            var publishButton = _s.ChromeDriver.FindElement(By.CssSelector("[data-testid='post-comment-btn']"));
                                             if (publishButton != null)
                                             {
                                                 // Publish the comment
@@ -128,6 +129,11 @@ namespace LikeAllStrava
                 }
             }
             catch { }
+            finally
+            {
+                // Empty the clipboard in the end
+                ClipboardService.SetText("");
+            }
         }
     }
 }

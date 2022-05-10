@@ -52,11 +52,11 @@ namespace LikeAllStrava
             _password = Encryption.DecryptString(_s.StravaSettings.Password);
             _s.FullName = Encryption.DecryptString(_s.StravaSettings.FullName);
 
-            // Close all GeckoDriver processes open
-            FirefoxDriverControl.CloseAllGeckoDrivers();
+            // Close all ChromeDriver processes open
+            ChromeDriverControl.CloseAllChromeDrivers();
 
-            // Initialize GeckoDriver with no logs at all
-            FirefoxDriverControl.InitializeFirefoxDriver();
+            // Initialize ChromeDriver with no logs at all
+            ChromeDriverControl.InitializeChromeDriver();
 
             Console.WriteLine("Beginning Strava Login...");
 
@@ -70,17 +70,17 @@ namespace LikeAllStrava
                 if (totalCountStravaLoad == 3)
                 {
                     Console.WriteLine("Error: Could not login into Strava.");
-                    FirefoxDriverControl.CloseAllGeckoDrivers();
+                    ChromeDriverControl.CloseAllChromeDrivers();
                     Environment.Exit(-1);
                 }
 
                 // Try to load Strava login screen
-                _s.FirefoxDriver.Url = "https://www.strava.com/login";
-                _s.FirefoxDriver.Manage().Window.Maximize();
+                _s.ChromeDriver.Url = "https://www.strava.com/login";
+                _s.ChromeDriver.Manage().Window.Maximize();
 
                 // "Accept Cookies" button click
-                WebDriverExtensions.WaitExtension.WaitUntilElement(_s.FirefoxDriver, By.CssSelector(".btn-accept-cookie-banner"), 2);
-                var acceptCookiesButton = _s.FirefoxDriver.FindElement(By.CssSelector(".btn-accept-cookie-banner"));
+                WebDriverExtensions.WaitExtension.WaitUntilElement(_s.ChromeDriver, By.CssSelector(".btn-accept-cookie-banner"), 2);
+                var acceptCookiesButton = _s.ChromeDriver.FindElement(By.CssSelector(".btn-accept-cookie-banner"));
                 acceptCookiesButton.Click();
             }
             catch
@@ -90,22 +90,22 @@ namespace LikeAllStrava
             }
 
             // Set email for login
-            var emailText = _s.FirefoxDriver.FindElement(By.Id("email"));
+            var emailText = _s.ChromeDriver.FindElement(By.Id("email"));
             emailText.SendKeys(_login);
 
             // Set password for login
-            var passwordText = _s.FirefoxDriver.FindElement(By.Id("password"));
+            var passwordText = _s.ChromeDriver.FindElement(By.Id("password"));
             passwordText.SendKeys(_password);
 
             // Click in the login button
-            var loginButton = _s.FirefoxDriver.FindElement(By.Id("login-button"));
+            var loginButton = _s.ChromeDriver.FindElement(By.Id("login-button"));
             loginButton.Click();
 
             // Wait a bit and check if page is loaded finding an element
-            WebDriverExtensions.WaitExtension.WaitUntilElement(_s.FirefoxDriver, By.XPath("//*[@data-testid='web-feed-entry']"), 15);
+            WebDriverExtensions.WaitExtension.WaitUntilElement(_s.ChromeDriver, By.XPath("//*[@data-testid='web-feed-entry']"), 15);
 
             // Refresh page because sometimes the pictures are not loaded 
-            _s.FirefoxDriver.Navigate().Refresh();
+            _s.ChromeDriver.Navigate().Refresh();
 
             Console.WriteLine("Completed Strava login");
         }

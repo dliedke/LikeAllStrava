@@ -4,7 +4,7 @@ namespace LikeAllStrava
 {
     public class ShraredObjects
     {
-        public static IWebDriver FirefoxDriver;
+        public static IWebDriver ChromeDriver;
         public static IJavaScriptExecutor JavascriptExecutor;
         public static StravaSettings StravaSettings = new();
         public static string FullName = string.Empty;

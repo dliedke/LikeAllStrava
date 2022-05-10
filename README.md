@@ -30,7 +30,8 @@ congratscomment "Congratulations for the run race [name] 🏃‍♂️😀💪"
 
 In case you don't provide the message in command line the application will request it.
 
-Note: Congrats message does support emoticons because application uses Firefox browser for automation.
+Note: Congrats message support emoticons because application uses copy+paste clipboard for automation.
+      So your clipboard existing content will be lost when running this application.
 
 # Use it wisely
 
@@ -41,5 +42,3 @@ There is an limit of about 50 likes/per hour. Use it wisely.
 # Requirements
 
 <a href="https://dotnet.microsoft.com/en-us/download">.NET 6.0</a> is required to run this application.
-
-<a href="https://www.mozilla.org/en-US/firefox/windows/">Firefox Browser</a> is required to run this application.

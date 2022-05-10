@@ -77,8 +77,8 @@ namespace LikeAllStrava
             }
             finally
             {
-                // Close all GeckoDriver processes and exit
-                FirefoxDriverControl.CloseAllGeckoDrivers();
+                // Close all ChromeDriver processes and exit
+                ChromeDriverControl.CloseAllChromeDrivers();
             }
         }
     }
