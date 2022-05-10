@@ -1,4 +1,4 @@
-# LikeAllStrava
+﻿# LikeAllStrava
 
 Give kudos to people's workouts in Strava automatically.
 
@@ -20,15 +20,15 @@ There is a feature to add congratulation comments for long runs / run races.
 
 Just enter parameter congratscomment and then message (placeholder [name] will be first name of the athlete), examples:
 
-congratscomment "Congratulations for the long run [name]!"
+congratscomment "Congratulations for the long run [name] 🏃‍♂️😀💪"
 
 or 
 
-congratscomment "Congratulations for the run race [name]!"
+congratscomment "Congratulations for the run race [name] 🏃‍♂️😀💪"
 
 In case you don't provide the message in command line the application will request it.
 
-Note: Congrats message does not support emoticons due to Selenium limitations.
+Note: Congrats message does support emoticons because application uses Firefox browser for automation.
 
 # Use it wisely
 
@@ -39,3 +39,5 @@ There is an limit of about 50 likes/per hour. Use it wisely.
 # Requirements
 
 <a href="https://dotnet.microsoft.com/en-us/download">.NET 6.0</a> is required to run this application.
+
+<a href="https://www.mozilla.org/en-US/firefox/windows/">Firefox Browser</a> is required to run this application.

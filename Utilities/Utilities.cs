@@ -59,5 +59,12 @@ namespace LikeAllStrava
             }
             catch { }
         }
+
+        public static void PopulateElementJs(IWebElement element, string text)
+        {
+            // Allow sending emoticons in comments
+            var script = "arguments[0].value=' " + text + " ';";
+            _s.JavascriptExecutor.ExecuteScript(script, element);
+        }
     }
 }

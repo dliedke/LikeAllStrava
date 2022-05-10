@@ -17,7 +17,7 @@ namespace LikeAllStrava
             try
             {
                 // Find all like buttons not yet clicked (svg html tags)
-                var likeElements = _s.ChromeDriver.FindElements(By.CssSelector("[data-testid='unfilled_kudos']"));
+                var likeElements = _s.FirefoxDriver.FindElements(By.CssSelector("[data-testid='unfilled_kudos']"));
                 foreach (var element in likeElements)
                 {
                     try
@@ -64,7 +64,7 @@ namespace LikeAllStrava
         private static bool ScrollToBottom()
         {
             // Get the cards to find total number of workouts in the page
-            var cards = _s.ChromeDriver.FindElements(By.CssSelector(".Feed--entry-container--ntrEd"));
+            var cards = _s.FirefoxDriver.FindElements(By.CssSelector(".Feed--entry-container--ntrEd"));
             int totalCardsWorkout = cards.Count;
 
             // Scroll to the end of the page
@@ -75,7 +75,7 @@ namespace LikeAllStrava
         wait:
 
             // Get the cards to find total number of workouts in the page now
-            cards = _s.ChromeDriver.FindElements(By.CssSelector(".Feed--entry-container--ntrEd"));
+            cards = _s.FirefoxDriver.FindElements(By.CssSelector(".Feed--entry-container--ntrEd"));
             int totalCardsNow = cards.Count;
 
             // Check if more workouts were loaded
