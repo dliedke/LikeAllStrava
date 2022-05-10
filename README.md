@@ -14,6 +14,8 @@ LikeAllStrava followpeople https://www.strava.com/athletes/9954999/follows?type=
 
 In case you don't provide the URL in command line the application will request it.
 
+Note: You must be following athete already for this feature to work.
+
 # Congratulations comment
 
 There is a feature to add congratulation comments for long runs / run races.
