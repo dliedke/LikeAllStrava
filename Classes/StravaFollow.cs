@@ -11,6 +11,7 @@ namespace LikeAllStrava
             // Add page in the url as parameter to go through all pages
             url += "&page={0}";
             int page = 1;
+            int noMoreButtonsCount = 0;
 
             // Loop through all the pages
             while (true)
@@ -30,6 +31,18 @@ namespace LikeAllStrava
                 // No more follow buttons and just one unfollow button, so exit
                 if ((requestToFollowButtons == null && followButtons == null && unfollowButtons == null) ||
                    (requestToFollowButtons?.Count == 0 && followButtons?.Count == 0 && unfollowButtons?.Count == 1))
+                {
+                    break;
+                }
+
+                // Just in case we are not yet following the main athelete, so count to 3 pages and exit
+                if ((requestToFollowButtons == null && followButtons == null && unfollowButtons == null) ||
+                   (requestToFollowButtons?.Count == 0 && followButtons?.Count == 1 && unfollowButtons?.Count == 0))
+                {
+                    noMoreButtonsCount++;
+                }
+
+                if (noMoreButtonsCount == 3)
                 {
                     break;
                 }
