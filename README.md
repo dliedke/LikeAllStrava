@@ -14,7 +14,11 @@ LikeAllStrava followpeople https://www.strava.com/athletes/9954999/follows?type=
 
 In case you don't provide the URL in command line the application will request it.
 
-Note: You must be following athete already for this feature to work.
+Note: You must be following athete already for this feature to work properly. 
+
+Also Strava blocks following too much new people from time to time.
+
+Try later if it doesn't work.
 
 # Congratulations comment
 
