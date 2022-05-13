@@ -43,12 +43,13 @@ namespace LikeAllStrava
                         var str = element1.GetAttribute("innerHTML");
 
                         // Check if this is not own user workout
-                        // And this is a run workout
+                        // And validate workout type
                         if (!_regexOwnWorkout.IsMatch(str) &&
-                            (str.Contains(@"title=""Corrida""") ||
-                             str.Contains(@"title=""Run""")))
+                            ValidateTrainingType(str))
                         {
-                            // Find total KMs ran
+                            // Find total KMs for the workout
+                            bool successParsingKms = false;
+                            float kms = 0;
                             Match matchKms = _regexFindKmsPT.Match(str);
                             if (!matchKms.Success)
                             {
@@ -58,68 +59,70 @@ namespace LikeAllStrava
                             {
                                 if (matchKms.Groups.Count > 1)
                                 {
-                                    // If the workout was 10km or more
-                                    bool successParsingKms = float.TryParse(matchKms.Groups[1].Value, out float kms);
-                                    if (successParsingKms && kms >= 10)
+                                    successParsingKms = float.TryParse(matchKms.Groups[1].Value, out kms);
+                                }
+                            }
+
+                            // If the workout distance is within range or it is swimming workout
+                            if ((successParsingKms && ValidateDistance(kms))
+                                || _s.CongratsTrainingType == "Swim")
+                            {
+                                // Retrieve athlete first name
+                                string athleteFirstname = string.Empty;
+                                Match athleteNameMatch = _regexAthleteName.Match(str);
+                                if (athleteNameMatch.Success)
+                                {
+                                    athleteFirstname = athleteNameMatch.Groups[1].Value.Split(' ')[0];
+                                }
+
+                                // Replace the [name] tag with athlete first name found
+                                string messageCongrats = _s.CongratsMessage.Replace("[name]", athleteFirstname);
+
+                                // Scroll to the comment button
+                                Console.WriteLine("Found run workout to add comment...");
+                                Utilities.ScrollToElement(addCommentButton);
+                                System.Threading.Thread.Sleep(1000);
+
+                                // Get the card html of the workout
+                                var element2 = Utilities.GetParentElement(Utilities.GetParentElement(Utilities.GetParentElement(Utilities.GetParentElement(button))));
+                                var str2 = element2.GetAttribute("innerHTML");
+
+                                // If we already commented, do not add duplicated comment
+                                if (str2.Contains(messageCongrats))
+                                {
+                                    continue;
+                                }
+
+                                // Click in the comment button then waits 1s 
+                                addCommentButton.Click();
+                                Console.WriteLine("Adding comment...");
+                                System.Threading.Thread.Sleep(1000);
+
+                                // Find the comment box
+                                var elementCommentTextBox = _s.ChromeDriver.FindElement(By.XPath("//textarea[@placeholder='Adicione um comentário, @ para mencionar']"));
+                                if (elementCommentTextBox != null)
+                                {
+                                    // Scroll to comment box 
+                                    Utilities.ScrollToElement(elementCommentTextBox);
+                                    System.Threading.Thread.Sleep(1000);
+
+                                    // Use clipboard to copy+paste comment message in textarea to allow emoticons
+                                    ClipboardService.SetText(messageCongrats);
+                                    elementCommentTextBox.SendKeys(OpenQA.Selenium.Keys.Control + "v");
+
+                                    // Find button to post and click on it
+                                    var publishButton = _s.ChromeDriver.FindElement(By.CssSelector("[data-testid='post-comment-btn']"));
+                                    if (publishButton != null)
                                     {
-                                        // Retrieve athlete first name
-                                        string athleteFirstname = string.Empty;
-                                        Match athleteNameMatch = _regexAthleteName.Match(str);
-                                        if (athleteNameMatch.Success && matchKms.Groups.Count > 1)
-                                        {
-                                            athleteFirstname = athleteNameMatch.Groups[1].Value.Split(' ')[0];
-                                        }
+                                        // Publish the comment
+                                        publishButton.Click();
+                                        Console.WriteLine("Comment published!");
 
-                                        // Replace the [name] tag with athlete first name found
-                                        string messageCongrats = _s.MessageCongratsComment.Replace("[name]", athleteFirstname);
-
-                                        // Scroll to the comment button
-                                        Console.WriteLine("Found run workout to add comment...");
-                                        Utilities.ScrollToElement(addCommentButton);
-                                        System.Threading.Thread.Sleep(1000);
-
-                                        // Get the card html of the workout
-                                        var element2 = Utilities.GetParentElement(Utilities.GetParentElement(Utilities.GetParentElement(Utilities.GetParentElement(button))));
-                                        var str2 = element2.GetAttribute("innerHTML");
-
-                                        // If we already commented, do not add duplicated comment
-                                        if (str2.Contains(messageCongrats))
-                                        {
-                                            continue;
-                                        }
-
-                                        // Click in the comment button then waits 1s 
+                                        // Close the comment box
                                         addCommentButton.Click();
-                                        Console.WriteLine("Adding comment...");
-                                        System.Threading.Thread.Sleep(1000);
 
-                                        // Find the comment box
-                                        var elementCommentTextBox = _s.ChromeDriver.FindElement(By.XPath("//textarea[@placeholder='Adicione um comentário, @ para mencionar']"));
-                                        if (elementCommentTextBox != null)
-                                        {
-                                            // Scroll to comment box 
-                                            Utilities.ScrollToElement(elementCommentTextBox);
-                                            System.Threading.Thread.Sleep(1000);
-
-                                            // Use clipboard to copy+paste comment message in textarea to allow emoticons
-                                            ClipboardService.SetText(messageCongrats);
-                                            elementCommentTextBox.SendKeys(OpenQA.Selenium.Keys.Control + "v");
-
-                                            // Find button to post and click on it
-                                            var publishButton = _s.ChromeDriver.FindElement(By.CssSelector("[data-testid='post-comment-btn']"));
-                                            if (publishButton != null)
-                                            {
-                                                // Publish the comment
-                                                publishButton.Click();
-                                                Console.WriteLine("Comment published!");
-
-                                                // Close the comment box
-                                                addCommentButton.Click();
-
-                                                // Wait 10s for user to review the comment
-                                                System.Threading.Thread.Sleep(10000);
-                                            }
-                                        }
+                                        // Wait 10s for user to review the comment
+                                        System.Threading.Thread.Sleep(10000);
                                     }
                                 }
                             }
@@ -134,6 +137,63 @@ namespace LikeAllStrava
                 // Empty the clipboard in the end
                 ClipboardService.SetText("");
             }
+        }
+
+        public static bool ValidateTrainingType(string html)
+        {
+            /*
+             * title="Weight Training"  title="Treinamento com peso"
+               title="Run"  		    title="Corrida"
+               title="Hike"   		    title="Trilha"
+               title="Walk"  	        title="Caminhada"
+               title="Ride"  	        title="Pedalada"
+               title="Swim"    	        title="Natação"
+            */
+
+            if (_s.CongratsTrainingType == "Weight Training")
+            {
+                return (html.Contains(@"title=""Treinamento com peso""") || html.Contains(@"title=""Weight Training"""));
+            }
+
+            if (_s.CongratsTrainingType == "Run")
+            {
+                return (html.Contains(@"title=""Corrida""") || html.Contains(@"title=""Run"""));
+            }
+
+            if (_s.CongratsTrainingType == "Hike")
+            {
+                return (html.Contains(@"title=""Trilha""") || html.Contains(@"title=""Hike"""));
+            }
+
+            if (_s.CongratsTrainingType == "Walk")
+            {
+                return (html.Contains(@"title=""Caminhada""") || html.Contains(@"title=""Walk"""));
+            }
+
+            if (_s.CongratsTrainingType == "Ride")
+            {
+                return (html.Contains(@"title=""Pedalada""") || html.Contains(@"title=""Ride"""));
+            }
+
+            if (_s.CongratsTrainingType == "Swim")
+            {
+                return (html.Contains(@"title=""Natação""") || html.Contains(@"title=""Swim"""));
+            }
+
+            return false;
+        }
+
+        public static bool ValidateDistance(float kms)
+        {
+            // No need to validate distance
+            if (_s.CongratsMinimumDistance == 0 && _s.CongratsMaximumDistance == 0)
+                return true;
+
+            // Check if distance is within provided range
+            if (kms >= _s.CongratsMinimumDistance && kms <= _s.CongratsMaximumDistance)
+                return true;
+
+            return false;
         }
     }
 }

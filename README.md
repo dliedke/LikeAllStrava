@@ -18,17 +18,24 @@ Note: You must be following athete already for this feature to work.
 
 # Congratulations comment
 
-There is a feature to add congratulation comments for long runs / run races.
+There is a feature to add congratulation comments for workouts.
 
-Just enter parameter congratscomment and then message (placeholder [name] will be first name of the athlete), examples:
+Parameters are congratscomment "[training type]" [minimum distance-maximum distance] "[message]"
 
-congratscomment "Congratulations for the long run [name] 🏃‍♂️😀💪"
+(placeholder [name] will be replaced with first name of the athlete)
 
-or 
+Example of parameters:
 
-congratscomment "Congratulations for the run race [name] 🏃‍♂️😀💪"
+congratscomment "Run" 10-100 "Congratulations for the long run [name] 🏃‍♂️😀💪!"
 
-In case you don't provide the message in command line the application will request it.
+congratscomment "Run" 40-43 "Congratulations for the marathon [name] 🏃‍♂️😀💪!"
+                    
+If minimum distance-maximum distance is 0-0 all workouts of the type provided will be considered for comments. Example for swimming distance is not considered:
+
+congratscomment "Swim" 0-0 "Congratulations for the swimming session [name] 🏊‍♀️🏊‍♀️!"
+
+In case you don't provide the message in command line the application will request all parameters,
+but in this scenario emoticons in message are not supported.
 
 Note: Congrats message support emoticons because application uses copy+paste clipboard for automation.
       So your clipboard existing content will be lost when running this application.
