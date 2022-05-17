@@ -28,6 +28,15 @@ Parameters are congratscomment "[training type]" [minimum distance-maximum dista
 
 (placeholder [name] will be replaced with first name of the athlete)
 
+The following "training type" parameters values are supported:
+
+- Run
+- Ride
+- Swim
+- Hike
+- Walk  	       
+- Weight Training
+
 Example of parameters:
 
 congratscomment "Run" 10-100 "Congratulations for the long run [name] 🏃‍♂️😀💪!"
