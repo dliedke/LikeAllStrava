@@ -33,19 +33,19 @@ namespace LikeAllStrava
 
                 // No more follow buttons and just one unfollow button, so exit
                 if ((requestToFollowButtons == null && followButtons == null && unfollowButtons == null) ||
-                   (requestToFollowButtons?.Count == 0 && followButtons?.Count == 0 && (unfollowButtons?.Count == 1 || unfollowForApprovalButtons?.Count == 1)))
+                   (requestToFollowButtons?.Count == 0 && followButtons?.Count == 0 && (unfollowButtons?.Count == 1 || (unfollowForApprovalButtons?.Count == 1 && unfollowButtons?.Count == 0))))
                 {
                     break;
                 }
 
-                // Just in case we are not yet following the main athelete, so count to 3 pages and exit
+                // Just in case we are not yet following the main athelete, so count to 10 pages and exit
                 if ((requestToFollowButtons == null && followButtons == null && unfollowButtons == null) ||
                    (requestToFollowButtons?.Count == 0 && followButtons?.Count == 1 && unfollowButtons?.Count == 0))
                 {
                     noMoreButtonsCount++;
                 }
 
-                if (noMoreButtonsCount == 3)
+                if (noMoreButtonsCount == 10)
                 {
                     break;
                 }
