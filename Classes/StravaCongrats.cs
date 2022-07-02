@@ -152,32 +152,32 @@ namespace LikeAllStrava
 
             if (_s.CongratsTrainingType == "Weight Training")
             {
-                return (html.Contains(@"title=""Treinamento com peso""") || html.Contains(@"title=""Weight Training"""));
+                return (html.Contains(@"<title>Treinamento com peso</title>") || html.Contains(@"<title>Weight Training</title>"));
             }
 
             if (_s.CongratsTrainingType == "Run")
             {
-                return (html.Contains(@"title=""Corrida""") || html.Contains(@"title=""Run"""));
+                return (html.Contains(@"<title>Corrida</title>") || html.Contains(@"<title>Run</title>"));
             }
 
             if (_s.CongratsTrainingType == "Hike")
             {
-                return (html.Contains(@"title=""Trilha""") || html.Contains(@"title=""Hike"""));
+                return (html.Contains(@"<title>Trilha</title>") || html.Contains(@"<title>Hike</title>"));
             }
 
             if (_s.CongratsTrainingType == "Walk")
             {
-                return (html.Contains(@"title=""Caminhada""") || html.Contains(@"title=""Walk"""));
+                return (html.Contains(@"<title>Caminhada</title>") || html.Contains(@"<title>Walk</title>"));
             }
 
             if (_s.CongratsTrainingType == "Ride")
             {
-                return (html.Contains(@"title=""Pedalada""") || html.Contains(@"title=""Ride"""));
+                return (html.Contains(@"<title>Pedalada</title>") || html.Contains(@"<title>Ride</title>"));
             }
 
             if (_s.CongratsTrainingType == "Swim")
             {
-                return (html.Contains(@"title=""Natação""") || html.Contains(@"title=""Swim"""));
+                return (html.Contains(@"<title>Natação</title>") || html.Contains(@"<title>Swim</title>"));
             }
 
             return false;
