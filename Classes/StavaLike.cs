@@ -9,6 +9,8 @@ namespace LikeAllStrava
     {
         public static void LikeWorkouts()
         {
+            int totalLikes = 0;
+
             // Regex to check if the workout is from own user so it should not be liked
             Regex regexOwnWorkout = new($@"<a href=""/athletes/[\d]+"" data-testid=""owners-name"">{_s.FullName}</a>", RegexOptions.Compiled);
 
@@ -40,7 +42,15 @@ namespace LikeAllStrava
                             // Click in the like button using javascript
                             // then waits 3s to not be blocked by Strava because of automation
                             Utilities.ClickElementJavascript(button);
-                            Console.WriteLine("LIKED!");
+                            totalLikes++;
+                            Console.WriteLine($"LIKED! ({totalLikes})");
+
+                            // Maximum likes per hour?
+                            if (totalLikes == 117)
+                            {
+                                Console.WriteLine("Maximum likes for now reached. Exiting...");
+                                return;
+                            }
                             System.Threading.Thread.Sleep(3000);
                         }
                     }
