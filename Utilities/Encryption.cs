@@ -1,5 +1,5 @@
-﻿// This class is used to encrypt and decrypt strings
-// for the config file
+﻿// Esta classe é usada para criptografar e descriptografar strings
+// para o arquivo de configuração
 
 using System.Text;
 using System.Security.Cryptography;

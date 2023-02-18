@@ -36,6 +36,19 @@ namespace LikeAllStrava
             Console.WriteLine("Closing all ChromeDriver processes open...");
             Process process = Process.Start("taskkill", "/F /IM ChromeDriver.exe /T");
             process.WaitForExit();
+
+            // Delete scoped_dir directories from temp created by ChromeDriver
+            string tempDir = Environment.ExpandEnvironmentVariables("%temp%");
+            string[] scopedDirs = Directory.GetDirectories(tempDir, "scoped_dir*");
+            foreach (string path in scopedDirs) 
+            {
+                DirectoryInfo di = new(path);
+                if (di.Exists)
+                {
+                    di.Delete(true);
+                }
+            }
+
             Console.WriteLine("DONE!");
         }
     }
