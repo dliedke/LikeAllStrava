@@ -96,10 +96,10 @@ namespace LikeAllStrava
             // Set password for login
             var passwordText = _s.ChromeDriver.FindElement(By.Id("password"));
             passwordText.SendKeys(_password);
-
+            
             // Click in the login button
             var loginButton = _s.ChromeDriver.FindElement(By.Id("login-button"));
-            loginButton.Click();
+            loginButton.Submit();
 
             // Wait a bit and check if page is loaded finding an element
             WebDriverExtensions.WaitExtension.WaitUntilElement(_s.ChromeDriver, By.XPath("//*[@data-testid='web-feed-entry']"), 15);

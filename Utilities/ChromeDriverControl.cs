@@ -28,6 +28,12 @@ namespace LikeAllStrava
 
             _s.ChromeDriver = new ChromeDriver(service, options);
             _s.JavascriptExecutor = (IJavaScriptExecutor)_s.ChromeDriver;
+
+            // Set implicit wait timeouts to 90 secs
+            _s.ChromeDriver.Manage().Timeouts().ImplicitWait=TimeSpan.FromSeconds(90); 
+
+            // Increase timeout for selenium chromedriver to 90 seconds
+            _s.ChromeDriver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(90);
         }
 
         public static void CloseAllChromeDrivers()
