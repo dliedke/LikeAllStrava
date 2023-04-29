@@ -57,8 +57,8 @@ Note: Congrats message support emoticons because application uses copy+paste cli
 
 Remember that if you use too much this application you will be temporary blocked from giving kudos/following new people in the Strava platform.
 
-There is an limit of about 50 likes/per hour. Use it wisely.
+There is an limit of about 100 likes/per hour. Use it wisely.
 
 # Requirements
 
-<a href="https://dotnet.microsoft.com/en-us/download">.NET 6.0</a> is required to run this application.
+<a href="https://dotnet.microsoft.com/en-us/download">.NET 7.0</a> is required to run this application.

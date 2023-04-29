@@ -74,7 +74,7 @@ namespace LikeAllStrava
         private static bool ScrollToBottom()
         {
             // Get the cards to find total number of workouts in the page
-            var cards = _s.ChromeDriver.FindElements(By.CssSelector("._-_-packages-feed-ui-src-features-FeedEntry__entry-container--vBe17"));
+            var cards = _s.ChromeDriver.FindElements(By.CssSelector(".------packages-feed-ui-src-features-FeedEntry__entry-container--FPn3K"));
             int totalCardsWorkout = cards.Count;
 
             // Scroll to the end of the page
@@ -85,7 +85,7 @@ namespace LikeAllStrava
         wait:
 
             // Get the cards to find total number of workouts in the page now
-            cards = _s.ChromeDriver.FindElements(By.CssSelector("._-_-packages-feed-ui-src-features-FeedEntry__entry-container--vBe17"));
+            cards = _s.ChromeDriver.FindElements(By.CssSelector(".------packages-feed-ui-src-features-FeedEntry__entry-container--FPn3K"));
             int totalCardsNow = cards.Count;
 
             // Check if more workouts were loaded
