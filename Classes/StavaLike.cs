@@ -78,7 +78,7 @@ namespace LikeAllStrava
             int totalCardsWorkout = cards.Count;
 
             // Scroll to the end of the page
-            _s.JavascriptExecutor.ExecuteScript("window.scrollTo(0, document.body.scrollHeight);");
+            _s.JavascriptExecutor.ExecuteScript("window.scrollTo(0, document.body.scrollHeight-1500);");
 
             int retries = 0;
 
@@ -90,15 +90,15 @@ namespace LikeAllStrava
 
             // Check if more workouts were loaded
             // if not, wait a bit more
-            if (totalCardsNow == totalCardsWorkout && retries < 10)
+            if (totalCardsNow == totalCardsWorkout && retries < 30)
             {
                 System.Threading.Thread.Sleep(500);
                 retries++;
                 goto wait;
             }
 
-            // After 5s if no more workouts were find we are done
-            if (retries == 10)
+            // After 15s if no more workouts were find we are done
+            if (retries == 30)
             {
                 return true;
             }
