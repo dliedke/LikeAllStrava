@@ -12,28 +12,58 @@ namespace LikeAllStrava
     {
         public static void InitializeChromeDriver()
         {
-            // Download updated Chrome driver on the fly
             new DriverManager().SetUpDriver(new ChromeConfig());
 
             ChromeDriverService service = ChromeDriverService.CreateDefaultService();
-            service.SuppressInitialDiagnosticInformation = true;  // Disable logs
-            service.EnableVerboseLogging = false;                 // Disable logs
-            service.EnableAppendLog = false;                      // Disable logs
-            service.HideCommandPromptWindow = true;               // Hide window
+            service.SuppressInitialDiagnosticInformation = true;
+            service.EnableVerboseLogging = false;
+            service.EnableAppendLog = false;
+            service.HideCommandPromptWindow = true;
 
             ChromeOptions options = new();
-            options.AddArgument("start-maximized");               // Start Chrome window maximized
-            options.AddArgument("--no-sandbox");                  // Use same profile as the user
-            options.AddArgument("--disable-gpu");                 // Disable hardware acceleration because it shows washed out Strava sometimes in HDR screens
+
+            // Configurações básicas
+            options.AddArgument("start-maximized");
+            options.AddArgument("--no-sandbox");
+            options.AddArgument("--disable-gpu");
+
+            // Adiciona user agent realista
+            options.AddArgument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+
+            // Desativa automação WebDriver
+            options.AddArgument("--disable-blink-features=AutomationControlled");
+
+            // Adiciona algumas preferências para parecer mais humano
+            options.AddUserProfilePreference("profile.default_content_setting_values.notifications", 2);
+            options.AddUserProfilePreference("profile.password_manager_enabled", false);
+            options.AddUserProfilePreference("credentials_enable_service", false);
+
+            // Desativa PDF viewer
+            options.AddUserProfilePreference("plugins.always_open_pdf_externally", true);
+
+            // Adiciona extensões aleatórias comuns (opcional)
+            // options.AddExtension("path_to_extension.crx");
+
+            // Randomiza a resolução da janela
+            var resolutions = new[] {
+        (1920, 1080),
+        (1366, 768),
+        (1536, 864),
+        (1440, 900)
+    };
+            var (width, height) = resolutions[new Random().Next(resolutions.Length)];
+            options.AddArgument($"--window-size={width},{height}");
 
             _s.ChromeDriver = new ChromeDriver(service, options);
             _s.JavascriptExecutor = (IJavaScriptExecutor)_s.ChromeDriver;
 
-            // Set implicit wait timeouts to 90 secs
-            _s.ChromeDriver.Manage().Timeouts().ImplicitWait=TimeSpan.FromSeconds(90); 
+            // Remove WebDriver flags usando JavaScript
+            _s.JavascriptExecutor.ExecuteScript(@"
+        Object.defineProperty(navigator, 'webdriver', {
+            get: () => undefined
+        });
+    ");
 
-            // Increase timeout for selenium chromedriver to 90 seconds
-            _s.ChromeDriver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(90);
         }
 
         public static void CloseAllChromeDrivers()
@@ -48,7 +78,7 @@ namespace LikeAllStrava
             // Delete scoped_dir directories from temp created by ChromeDriver
             string tempDir = Environment.ExpandEnvironmentVariables("%temp%");
             string[] scopedDirs = Directory.GetDirectories(tempDir, "scoped_dir*");
-            foreach (string path in scopedDirs) 
+            foreach (string path in scopedDirs)
             {
                 DirectoryInfo di = new(path);
                 if (di.Exists)
