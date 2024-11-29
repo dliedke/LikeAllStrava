@@ -18,11 +18,17 @@ namespace LikeAllStrava
             try
             {
                 // Find all unfilled kudos buttons by looking for buttons that contain the unfilled_kudos SVG
-                var likeElements = _s.ChromeDriver.FindElements(
-                    By.XPath("//button[@data-testid='kudos_button'][.//svg[@data-testid='unfilled_kudos']]")
-                );
+                // Step 1: Get all kudos buttons
+                var kudosButtons = _s.ChromeDriver.FindElements(By.CssSelector("button[data-testid='kudos_button']"));
 
-                foreach (var element in likeElements)
+                // Step 2: Filter only those with unfilled kudos SVG
+                var unfilledKudosButtons = kudosButtons
+                    .Where(button => button
+                        .FindElements(By.CssSelector("svg[data-testid='unfilled_kudos']"))
+                        .Any())
+                    .ToList();
+
+                foreach (var element in unfilledKudosButtons)
                 {
                     try
                     {
