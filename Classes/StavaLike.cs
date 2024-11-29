@@ -5,7 +5,7 @@ using _s = LikeAllStrava.ShraredObjects;
 
 namespace LikeAllStrava
 {
-    public class StravaLike 
+    public class StravaLike
     {
         public static void LikeWorkouts()
         {
@@ -15,22 +15,30 @@ namespace LikeAllStrava
             Regex regexOwnWorkout = new($@"<a href=""/athletes/[\d]+"" data-testid=""owners-name"">{_s.FullName}</a>", RegexOptions.Compiled);
 
         retry:
-
             try
             {
-                // Find all like buttons not yet clicked (svg html tags)
-                var likeElements = _s.ChromeDriver.FindElements(By.CssSelector("[data-testid='unfilled_kudos']"));
+                // Find all unfilled kudos buttons by looking for buttons that contain the unfilled_kudos SVG
+                var likeElements = _s.ChromeDriver.FindElements(
+                    By.XPath("//button[@data-testid='kudos_button'][.//svg[@data-testid='unfilled_kudos']]")
+                );
+
                 foreach (var element in likeElements)
                 {
                     try
                     {
-                        // The unfilled_kudos is an svg, retrieve the parent button to click
-                        IWebElement button;
-                        button = Utilities.GetParentElement(element);
+                        // Get the parent button element
+                        IWebElement button = element;
 
-                        // Get the card html of the workout
-                        var element1 = Utilities.GetParentElement(Utilities.GetParentElement(Utilities.GetParentElement(Utilities.GetParentElement(Utilities.GetParentElement(button)))));
-                        var str = element1.GetAttribute("innerHTML");
+                        // Navigate up to find the card container
+                        // The new structure goes: button -> mediaActions -> kudosAndComments -> entryFooter -> feedEntry (card)
+                        var card = button.FindElement(By.XPath("./ancestor::div[contains(@class, 'feedEntry')]"));
+
+                        if (card == null)
+                        {
+                            continue;
+                        }
+
+                        var str = card.GetAttribute("innerHTML");
 
                         // Check if this is not own user workout
                         if (!regexOwnWorkout.IsMatch(str))
@@ -39,31 +47,39 @@ namespace LikeAllStrava
                             Console.Write("Finding workout to give kudos...");
                             Utilities.ScrollToElement(element);
 
-                            // Click in the like button using javascript
-                            // then waits 3s to not be blocked by Strava because of automation
+                            // Click the like button using javascript
                             Utilities.ClickElementJavascript(button);
                             totalLikes++;
                             Console.WriteLine($"LIKED! ({totalLikes})");
 
-                            // Maximum likes per hour?
+                            // Maximum likes per hour
                             if (totalLikes == 117)
                             {
                                 Console.WriteLine("Maximum likes for now reached. Exiting...");
                                 return;
                             }
-                            System.Threading.Thread.Sleep(3000);
+
+                            // Wait between likes to avoid being blocked
+                            Thread.Sleep(3000);
                         }
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error processing individual like: {ex.Message}");
+                        continue; // Skip this item and continue with the next
+                    }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in main like loop: {ex.Message}");
+            }
 
-            // Scroll to the bottom of the page to load more content
+            // Scroll to load more content
             Console.WriteLine("Scrolling to load more content...");
             bool pageFinished = ScrollToBottom();
 
-            // Repeat scroll until no more new workouts are found on the page
+            // Continue if there are more workouts to load
             if (!pageFinished)
             {
                 goto retry;
@@ -109,4 +125,3 @@ namespace LikeAllStrava
         }
     }
 }
-                                                              
