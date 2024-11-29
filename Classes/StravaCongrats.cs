@@ -40,7 +40,7 @@ namespace LikeAllStrava
 
                         // Get the card html of the workout
                         var element1 = Utilities.GetParentElement(Utilities.GetParentElement(Utilities.GetParentElement(Utilities.GetParentElement(button))));
-                        var str = element1.GetAttribute("innerHTML");
+                        var str = element1.GetDomProperty("innerHTML");
 
                         // Check if this is not own user workout
                         // And validate workout type
@@ -85,7 +85,7 @@ namespace LikeAllStrava
 
                                 // Get the card html of the workout
                                 var element2 = Utilities.GetParentElement(Utilities.GetParentElement(Utilities.GetParentElement(Utilities.GetParentElement(button))));
-                                var str2 = element2.GetAttribute("innerHTML");
+                                var str2 = element2.GetDomProperty("innerHTML");
 
                                 // If we already commented, do not add duplicated comment
                                 if (str2.Contains(messageCongrats))

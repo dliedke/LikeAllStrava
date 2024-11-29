@@ -44,7 +44,7 @@ namespace LikeAllStrava
                             continue;
                         }
 
-                        var str = card.GetAttribute("innerHTML");
+                        var str = card.GetDomProperty("innerHTML");
 
                         // Check if this is not own user workout
                         if (!regexOwnWorkout.IsMatch(str))
