@@ -28,6 +28,16 @@ namespace LikeAllStrava
                         .Any())
                     .ToList();
 
+                bool oldApproach = false;
+
+                if (unfilledKudosButtons.Count == 0)
+                {
+                    // Find all like buttons not yet clicked (svg html tags)
+                    kudosButtons = _s.ChromeDriver.FindElements(By.CssSelector("[data-testid='unfilled_kudos']"));
+                    unfilledKudosButtons = [.. kudosButtons];
+                    oldApproach = true;
+                }
+
                 foreach (var element in unfilledKudosButtons)
                 {
                     try
@@ -37,11 +47,23 @@ namespace LikeAllStrava
 
                         // Navigate up to find the card container
                         // The new structure goes: button -> mediaActions -> kudosAndComments -> entryFooter -> feedEntry (card)
-                        var card = button.FindElement(By.XPath("./ancestor::div[contains(@class, 'feedEntry')]"));
+                        IWebElement card;
 
-                        if (card == null)
+                        if (oldApproach == false)
                         {
-                            continue;
+                            card = button.FindElement(By.XPath("./ancestor::div[contains(@class, 'feedEntry')]"));
+                            if (card == null)
+                            {
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            // The unfilled_kudos is an svg, retrieve the parent button to click
+                            button = Utilities.GetParentElement(element);
+
+                            // Get the card html of the workout
+                            card = Utilities.GetParentElement(Utilities.GetParentElement(Utilities.GetParentElement(Utilities.GetParentElement(Utilities.GetParentElement(button)))));
                         }
 
                         var str = card.GetDomProperty("innerHTML");
@@ -99,6 +121,11 @@ namespace LikeAllStrava
             var cards = _s.ChromeDriver.FindElements(By.CssSelector(".------packages-feed-ui-src-features-FeedEntry__entry-container--FPn3K"));
             int totalCardsWorkout = cards.Count;
 
+            if (totalCardsWorkout == 0)
+            {
+                cards = _s.ChromeDriver.FindElements(By.CssSelector("div[id^='feed-entry-']"));
+                totalCardsWorkout = cards.Count;
+            }
             // Scroll to the end of the page
             _s.JavascriptExecutor.ExecuteScript("window.scrollTo(0, document.body.scrollHeight-1500);");
 
@@ -109,6 +136,12 @@ namespace LikeAllStrava
             // Get the cards to find total number of workouts in the page now
             cards = _s.ChromeDriver.FindElements(By.CssSelector(".------packages-feed-ui-src-features-FeedEntry__entry-container--FPn3K"));
             int totalCardsNow = cards.Count;
+
+            if (totalCardsNow == 0)
+            {
+                cards = _s.ChromeDriver.FindElements(By.CssSelector("div[id^='feed-entry-']"));
+                totalCardsNow = cards.Count;
+            }
 
             // Check if more workouts were loaded
             // if not, wait a bit more
