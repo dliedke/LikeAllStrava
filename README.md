@@ -61,4 +61,4 @@ There is an limit of about 100 likes/per hour. Use it wisely.
 
 # Requirements
 
-<a href="https://dotnet.microsoft.com/en-us/download">.NET 7.0</a> is required to run this application.
+<a href="https://dotnet.microsoft.com/en-us/download">.NET 9.0</a> is required to run this application.
