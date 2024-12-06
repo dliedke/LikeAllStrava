@@ -66,7 +66,6 @@ namespace LikeAllStrava
 
             try
             {
-                // Error loading Strava (tried 3 times already)
                 if (totalCountStravaLoad == 3)
                 {
                     Console.WriteLine("Error: Could not login into Strava.");
@@ -74,14 +73,13 @@ namespace LikeAllStrava
                     Environment.Exit(-1);
                 }
 
-                // Try to load Strava login screen
+                // Load Strava login screen
                 _s.ChromeDriver.Url = "https://www.strava.com/login";
                 _s.ChromeDriver.Manage().Window.Maximize();
 
-                // "Accept Cookies" button click
-                WebDriverExtensions.WaitExtension.WaitUntilElement(_s.ChromeDriver, By.CssSelector(".btn-accept-cookie-banner"), 2);
-                var acceptCookiesButton = _s.ChromeDriver.FindElement(By.CssSelector(".btn-accept-cookie-banner"));
-                acceptCookiesButton.Click();
+                // Accept cookies
+                WebDriverExtensions.WaitExtension.WaitUntilElement(_s.ChromeDriver, By.CssSelector("[data-cy='accept-cookies']"), 2);
+                ((IJavaScriptExecutor)_s.ChromeDriver).ExecuteScript("document.querySelector('[data-cy=\"accept-cookies\"]').click();");
             }
             catch
             {
@@ -89,19 +87,39 @@ namespace LikeAllStrava
                 goto retryStravaLoad;
             }
 
-            // Set email for login
-            var emailText = _s.ChromeDriver.FindElement(By.Id("email"));
-            emailText.SendKeys(_login);
+            // Random number generator for realistic delays
+            var random = new Random();
 
-            // Set password for login
-            var passwordText = _s.ChromeDriver.FindElement(By.Id("password"));
-            passwordText.SendKeys(_password);
-            
-            // Click in the login button
-            var loginButton = _s.ChromeDriver.FindElement(By.Id("login-button"));
-            loginButton.Submit();
+            // Type email with realistic delays
+            var emailInput = _s.ChromeDriver.FindElement(By.Id("desktop-email"));
+            emailInput.Clear();
+            foreach (char c in _login)
+            {
+                emailInput.SendKeys(c.ToString());
+                Thread.Sleep(random.Next(50, 150)); // Random delay between keystrokes
+            }
 
-            // Wait a bit and check if page is loaded finding an element
+            // Delay between fields like a human would
+            Thread.Sleep(random.Next(500, 1000));
+
+            // Type password with realistic delays
+            var passwordInput = _s.ChromeDriver.FindElement(By.Id("desktop-current-password"));
+            passwordInput.Clear();
+            foreach (char c in _password)
+            {
+                passwordInput.SendKeys(c.ToString());
+                Thread.Sleep(random.Next(50, 150));
+            }
+
+            // Delay before clicking submit
+            Thread.Sleep(random.Next(800, 1200));
+
+            // Click submit button using JavaScript
+            ((IJavaScriptExecutor)_s.ChromeDriver).ExecuteScript(
+                "document.querySelectorAll('button[type=\"submit\"]')[1].click();"
+            );
+
+            // Wait for feed to load
             WebDriverExtensions.WaitExtension.WaitUntilElement(_s.ChromeDriver, By.XPath("//*[@data-testid='web-feed-entry']"), 15);
 
             // Refresh page because sometimes the pictures are not loaded 
