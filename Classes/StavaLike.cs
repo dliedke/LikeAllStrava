@@ -19,7 +19,7 @@ namespace LikeAllStrava
             {
                 // Find all unfilled kudos buttons by looking for buttons that contain the unfilled_kudos SVG
                 // Step 1: Get all kudos buttons
-                var kudosButtons = _s.ChromeDriver.FindElements(By.CssSelector("button[data-testid='kudos_button']"));
+                var kudosButtons = _s.EdgeDriver.FindElements(By.CssSelector("button[data-testid='kudos_button']"));
 
                 // Step 2: Filter only those with unfilled kudos SVG
                 var unfilledKudosButtons = kudosButtons
@@ -33,7 +33,7 @@ namespace LikeAllStrava
                 if (unfilledKudosButtons.Count == 0)
                 {
                     // Find all like buttons not yet clicked (svg html tags)
-                    kudosButtons = _s.ChromeDriver.FindElements(By.CssSelector("[data-testid='unfilled_kudos']"));
+                    kudosButtons = _s.EdgeDriver.FindElements(By.CssSelector("[data-testid='unfilled_kudos']"));
                     unfilledKudosButtons = [.. kudosButtons];
                     oldApproach = true;
                 }
@@ -118,12 +118,12 @@ namespace LikeAllStrava
         private static bool ScrollToBottom()
         {
             // Get the cards to find total number of workouts in the page
-            var cards = _s.ChromeDriver.FindElements(By.CssSelector(".------packages-feed-ui-src-features-FeedEntry__entry-container--FPn3K"));
+            var cards = _s.EdgeDriver.FindElements(By.CssSelector(".------packages-feed-ui-src-features-FeedEntry__entry-container--FPn3K"));
             int totalCardsWorkout = cards.Count;
 
             if (totalCardsWorkout == 0)
             {
-                cards = _s.ChromeDriver.FindElements(By.CssSelector("div[id^='feed-entry-']"));
+                cards = _s.EdgeDriver.FindElements(By.CssSelector("div[id^='feed-entry-']"));
                 totalCardsWorkout = cards.Count;
             }
             // Scroll to the end of the page
@@ -134,12 +134,12 @@ namespace LikeAllStrava
         wait:
 
             // Get the cards to find total number of workouts in the page now
-            cards = _s.ChromeDriver.FindElements(By.CssSelector(".------packages-feed-ui-src-features-FeedEntry__entry-container--FPn3K"));
+            cards = _s.EdgeDriver.FindElements(By.CssSelector(".------packages-feed-ui-src-features-FeedEntry__entry-container--FPn3K"));
             int totalCardsNow = cards.Count;
 
             if (totalCardsNow == 0)
             {
-                cards = _s.ChromeDriver.FindElements(By.CssSelector("div[id^='feed-entry-']"));
+                cards = _s.EdgeDriver.FindElements(By.CssSelector("div[id^='feed-entry-']"));
                 totalCardsNow = cards.Count;
             }
 

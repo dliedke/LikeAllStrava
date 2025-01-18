@@ -21,15 +21,15 @@ namespace LikeAllStrava
             Regex _regexOwnWorkout = new($@"<a href=""/athletes/[\d]+"" data-testid=""owners-name"">{_s.FullName}</a>", RegexOptions.Compiled);
 
             // Load maximum of entries at once
-            _s.ChromeDriver.Url = "https://www.strava.com/dashboard?num_entries=600";
+            _s.EdgeDriver.Url = "https://www.strava.com/dashboard?num_entries=600";
 
             // Wait a bit and check if page is loaded finding an element
-            WebDriverExtensions.WaitExtension.WaitUntilElement(_s.ChromeDriver, By.XPath("//*[@data-testid='web-feed-entry']"), 15);
+            WebDriverExtensions.WaitExtension.WaitUntilElement(_s.EdgeDriver, By.XPath("//*[@data-testid='web-feed-entry']"), 15);
 
             try
             {
                 // Find all comment buttons
-                var addCommentElements = _s.ChromeDriver.FindElements(By.CssSelector("[data-testid='comment_button']"));
+                var addCommentElements = _s.EdgeDriver.FindElements(By.CssSelector("[data-testid='comment_button']"));
                 foreach (var addCommentButton in addCommentElements)
                 {
                     try
@@ -99,7 +99,7 @@ namespace LikeAllStrava
                                 System.Threading.Thread.Sleep(1000);
 
                                 // Find the comment box
-                                var elementCommentTextBox = _s.ChromeDriver.FindElement(By.XPath("//textarea[@placeholder='Adicione um comentário, @ para mencionar']"));
+                                var elementCommentTextBox = _s.EdgeDriver.FindElement(By.XPath("//textarea[@placeholder='Adicione um comentário, @ para mencionar']"));
                                 if (elementCommentTextBox != null)
                                 {
                                     // Scroll to comment box 
@@ -111,7 +111,7 @@ namespace LikeAllStrava
                                     elementCommentTextBox.SendKeys(OpenQA.Selenium.Keys.Control + "v");
 
                                     // Find button to post and click on it
-                                    var publishButton = _s.ChromeDriver.FindElement(By.CssSelector("[data-testid='post-comment-btn']"));
+                                    var publishButton = _s.EdgeDriver.FindElement(By.CssSelector("[data-testid='post-comment-btn']"));
                                     if (publishButton != null)
                                     {
                                         // Publish the comment

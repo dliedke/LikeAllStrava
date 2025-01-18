@@ -102,10 +102,10 @@ namespace LikeAllStrava
                 Utilities.InitializeConfig(args);
 
                 // Ask user for Strava login data if required first time
-                StravaLogin.RequestLoginData();
+                StravaLoad.RequestFullName();
 
                 // Login into Strava platform
-                StravaLogin.Login();
+                StravaLoad.Load();
 
                 // Check if we need to follow more people
                 if (args.Length > 0 && args[0] == "followpeople" && !string.IsNullOrEmpty(_s.UrlFollowPeople))
@@ -133,8 +133,8 @@ namespace LikeAllStrava
             }
             finally
             {
-                // Close all ChromeDriver processes and exit
-                ChromeDriverControl.CloseAllChromeDrivers();
+                // Close all EdgeDriver processes and exit
+                EdgeDriverControl.CloseAllEdgeDrivers();
             }
         }
     }

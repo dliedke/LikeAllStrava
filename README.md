@@ -2,7 +2,11 @@
 
 Give kudos to people's workouts in Strava automatically.
 
-In first run the application will ask for you login (email), password and complete name in Strava and save it encrypted in config file for next runs.
+In first run the application will ask for complete name in Strava and save it encrypted in config file for next runs.
+
+Make sure to open Edge and login manually in Strava before running this application.
+
+Because of remote port needed it will close all Edge instances before loading Strava.
 
 # Follow more people
 

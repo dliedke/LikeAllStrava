@@ -18,18 +18,18 @@ namespace LikeAllStrava
             {
                 // Navigate to the athlete page to follow more people
                 Console.WriteLine($"Following more people (page {page})...");
-                _s.ChromeDriver.Url = String.Format(url, page);
+                _s.EdgeDriver.Url = String.Format(url, page);
                 System.Threading.Thread.Sleep(2000);
 
                 // Get all the "Request to Follow" and "Follow" buttons on the page
-                var requestToFollowButtons = _s.ChromeDriver.FindElements(By.XPath("//*[@data-state='follow_with_approval']"));
-                var followButtons = _s.ChromeDriver.FindElements(By.XPath("//*[@data-state='follow']"));
+                var requestToFollowButtons = _s.EdgeDriver.FindElements(By.XPath("//*[@data-state='follow_with_approval']"));
+                var followButtons = _s.EdgeDriver.FindElements(By.XPath("//*[@data-state='follow']"));
 
                 // Get all unfollow buttons
-                var unfollowButtons = _s.ChromeDriver.FindElements(By.XPath("//*[@data-state='unfollow']"));
+                var unfollowButtons = _s.EdgeDriver.FindElements(By.XPath("//*[@data-state='unfollow']"));
 
                 // Get all unfollow for approval buttons
-                var unfollowForApprovalButtons = _s.ChromeDriver.FindElements(By.XPath("//*[@data-state='unfollow_for_approval']"));
+                var unfollowForApprovalButtons = _s.EdgeDriver.FindElements(By.XPath("//*[@data-state='unfollow_for_approval']"));
 
                 // No more follow buttons and just one unfollow button, so exit
                 if ((requestToFollowButtons == null && followButtons == null && unfollowButtons == null) ||
