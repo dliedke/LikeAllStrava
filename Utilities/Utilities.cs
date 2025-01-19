@@ -10,7 +10,7 @@ namespace LikeAllStrava
     {
         public static void InitializeConfig(string[] args)
         {
-            // Load configuration file with login, password and full name for Strava
+            // Load configuration file with full name for Strava
             IConfiguration config = new ConfigurationBuilder()
                                        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                                        .AddEnvironmentVariables()
@@ -29,7 +29,7 @@ namespace LikeAllStrava
             };
             jsonWriteOptions.Converters.Add(new JsonStringEnumConverter());
 
-            // Serialize settings with login data
+            // Serialize settings with Strava full name
             // and save in appsettings.json in the application path
             var newJson = JsonSerializer.Serialize(settings, jsonWriteOptions);
             var appSettingsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");

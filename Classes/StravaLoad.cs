@@ -8,7 +8,7 @@ namespace LikeAllStrava
     {
         public static void RequestFullName()
         {
-            // If we still don't have login data, get from the user and save it
+            // If we still don't have user name, get from the user and save it
             if (_s.StravaSettings != null && string.IsNullOrEmpty(_s.StravaSettings.FullName))
             {
                 // Ask user for full name in Strava and encrypt it

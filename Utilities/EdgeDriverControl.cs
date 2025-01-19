@@ -39,6 +39,11 @@ namespace LikeAllStrava
 
         public static void CloseAllEdgeDrivers()
         {
+            if (_s.EdgeDriver != null)
+            {
+                _s.EdgeDriver?.Quit();
+            }
+
             // Close all EdgeDriver processes open
             Console.WriteLine("Closing all EdgeDriver processes open...");
             Process process = Process.Start("taskkill", "/F /IM msedgedriver.exe /T");

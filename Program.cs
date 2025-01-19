@@ -101,10 +101,10 @@ namespace LikeAllStrava
                 // Read config file
                 Utilities.InitializeConfig(args);
 
-                // Ask user for Strava login data if required first time
+                // Ask user for Strava name if required first time
                 StravaLoad.RequestFullName();
 
-                // Login into Strava platform
+                // Load Strava platform
                 StravaLoad.Load();
 
                 // Check if we need to follow more people
@@ -129,7 +129,7 @@ namespace LikeAllStrava
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Automation error (maybe wrong login data?): " + ex.ToString());
+                Console.WriteLine("Automation error: " + ex.ToString());
             }
             finally
             {
