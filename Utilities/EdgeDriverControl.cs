@@ -10,26 +10,39 @@ namespace LikeAllStrava
     {
         public static void InitializeEdgeDriver()
         {
-            // Start Edge maximized using Edge debugger
-            Process.Start(new ProcessStartInfo
+            var processInfo = new ProcessStartInfo
             {
                 FileName = @"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
-                Arguments = "--remote-debugging-port=58492 --start-maximized"
-            });
+                Arguments = "--remote-debugging-port=59492 --start-maximized"
+            };
 
-            // Wait 3 seconds for Edge to fully initialize
+            Process.Start(processInfo);
             Thread.Sleep(3000);
 
-            // Attach to existing Edge instance
             var options = new EdgeOptions
             {
-                DebuggerAddress = "127.0.0.1:58492"
+                DebuggerAddress = "127.0.0.1:59492"
             };
+
             try
             {
                 var driver = new EdgeDriver(options);
                 _s.EdgeDriver = driver;
                 _s.JavascriptExecutor = (IJavaScriptExecutor)_s.EdgeDriver;
+
+                // Switch to the last window handle (usually the main window)
+                var windowHandles = driver.WindowHandles;
+                driver.SwitchTo().Window(windowHandles[windowHandles.Count - 1]);
+
+                // Open a new tab if needed
+                if (driver.Url.StartsWith("chrome-extension"))
+                {
+                    ((IJavaScriptExecutor)driver).ExecuteScript("window.open()");
+                    windowHandles = driver.WindowHandles;
+                    driver.SwitchTo().Window(windowHandles[windowHandles.Count - 1]);
+                }
+
+                Console.WriteLine($"Active tab URL: {driver.Url}");
             }
             catch (Exception ex)
             {
