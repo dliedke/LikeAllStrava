@@ -51,7 +51,7 @@ namespace LikeAllStrava
 
                         if (oldApproach == false)
                         {
-                            card = button.FindElement(By.XPath("./ancestor::div[contains(@class, 'feedEntry')]"));
+                            card = button.FindElement(By.XPath("./ancestor::div[@data-testid='web-feed-entry']"));
                             if (card == null)
                             {
                                 continue;
