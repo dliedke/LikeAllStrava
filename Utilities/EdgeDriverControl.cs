@@ -17,35 +17,97 @@ namespace LikeAllStrava
             };
 
             Process.Start(processInfo);
-            Thread.Sleep(3000);
+            Thread.Sleep(5000); // Increased from 3 to 5 seconds
 
             var options = new EdgeOptions
             {
                 DebuggerAddress = "127.0.0.1:59492"
             };
 
+            // Retry logic in case Edge isn't ready
+            EdgeDriver? driver = null;
+            int retries = 3;
+            Exception? lastException = null;
+
+            for (int i = 0; i < retries; i++)
+            {
+                try
+                {
+                    driver = new EdgeDriver(options);
+                    break; // Success, exit retry loop
+                }
+                catch (Exception ex)
+                {
+                    lastException = ex;
+                    Console.WriteLine($"Attempt {i + 1}/{retries} failed to connect to Edge: {ex.Message}");
+                    if (i < retries - 1)
+                    {
+                        Thread.Sleep(2000); // Wait before retry
+                    }
+                }
+            }
+
+            if (driver == null)
+            {
+                throw new Exception("Failed to initialize Edge driver after " + retries + " attempts: " + lastException?.Message);
+            }
+
             try
             {
-                var driver = new EdgeDriver(options);
                 _s.EdgeDriver = driver;
                 _s.JavascriptExecutor = (IJavaScriptExecutor)_s.EdgeDriver;
 
-                // Switch to the last window handle (usually the main window)
-                var windowHandles = driver.WindowHandles;
-                driver.SwitchTo().Window(windowHandles[windowHandles.Count - 1]);
+                // Give browser a moment to stabilize after connection
+                Thread.Sleep(2000); // Increased from 1 to 2 seconds
 
-                // Open a new tab if needed
-                if (driver.Url.StartsWith("chrome-extension"))
+                // Verify browser is still responsive
+                string currentUrl = "";
+                try
                 {
-                    ((IJavaScriptExecutor)driver).ExecuteScript("window.open()");
-                    windowHandles = driver.WindowHandles;
-                    driver.SwitchTo().Window(windowHandles[windowHandles.Count - 1]);
+                    currentUrl = driver.Url;
+                    Console.WriteLine($"Browser connected. Current URL: {currentUrl}");
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Browser disconnected immediately after connection: " + ex.Message);
                 }
 
-                Console.WriteLine($"Active tab URL: {driver.Url}");
+                // Switch to the last window handle (usually the main window)
+                var windowHandles = driver.WindowHandles;
+                if (windowHandles.Count > 0)
+                {
+                    driver.SwitchTo().Window(windowHandles[windowHandles.Count - 1]);
+
+                    // Give window switch time to complete
+                    Thread.Sleep(1000); // Increased from 500ms to 1s
+
+                    // Open a new tab if needed - handle internal Edge URLs
+                    string url = driver.Url;
+                    if (url.StartsWith("chrome-extension") || url.StartsWith("edge://"))
+                    {
+                        Console.WriteLine($"Internal Edge page detected ({url}), navigating to blank page...");
+
+                        // Navigate directly instead of opening new tab (safer for internal pages)
+                        driver.Navigate().GoToUrl("about:blank");
+                        Thread.Sleep(1000); // Wait for navigation
+                    }
+
+                    Console.WriteLine($"Active tab URL: {driver.Url}");
+                }
+                else
+                {
+                    throw new Exception("No window handles available - browser may have closed");
+                }
             }
             catch (Exception ex)
             {
+                // Clean up the driver if initialization failed
+                try
+                {
+                    driver?.Quit();
+                }
+                catch { }
+
                 throw new Exception("Failed to initialize Edge driver: " + ex.Message);
             }
         }
