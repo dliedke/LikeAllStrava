@@ -1,6 +1,8 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Edge;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 using _s = LikeAllStrava.ShraredObjects;
 
@@ -13,7 +15,8 @@ namespace LikeAllStrava
             var processInfo = new ProcessStartInfo
             {
                 FileName = @"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
-                Arguments = "--remote-debugging-port=59492 --start-maximized"
+                // Launch with about:blank to avoid edge://discover-chat-v2/ and extension conflicts
+                Arguments = "--remote-debugging-port=59492 --start-maximized about:blank"
             };
 
             Process.Start(processInfo);
@@ -60,7 +63,7 @@ namespace LikeAllStrava
                 // Give browser a moment to stabilize after connection
                 Thread.Sleep(2000); // Increased from 1 to 2 seconds
 
-                // Verify browser is still responsive
+                // Verify browser is still responsive and check for problematic pages
                 string currentUrl = "";
                 try
                 {
@@ -72,32 +75,49 @@ namespace LikeAllStrava
                     throw new Exception("Browser disconnected immediately after connection: " + ex.Message);
                 }
 
-                // Switch to the last window handle (usually the main window)
-                var windowHandles = driver.WindowHandles;
-                if (windowHandles.Count > 0)
+                // If on a problematic internal page, create a new tab and close the old one
+                if (currentUrl.StartsWith("edge://") || currentUrl.StartsWith("chrome-extension://"))
                 {
-                    driver.SwitchTo().Window(windowHandles[windowHandles.Count - 1]);
+                    Console.WriteLine($"Detected problematic page ({currentUrl}), creating new clean tab...");
 
-                    // Give window switch time to complete
-                    Thread.Sleep(1000); // Increased from 500ms to 1s
+                    var originalHandles = driver.WindowHandles;
 
-                    // Open a new tab if needed - handle internal Edge URLs
-                    string url = driver.Url;
-                    if (url.StartsWith("chrome-extension") || url.StartsWith("edge://"))
+                    // Create a new window/tab using CDP (Chrome DevTools Protocol) which bypasses the extension
+                    try
                     {
-                        Console.WriteLine($"Internal Edge page detected ({url}), navigating to blank page...");
+                        driver.ExecuteCdpCommand("Target.createTarget", new Dictionary<string, object>
+                        {
+                            { "url", "about:blank" }
+                        });
+                        Thread.Sleep(1500);
 
-                        // Navigate directly instead of opening new tab (safer for internal pages)
-                        driver.Navigate().GoToUrl("about:blank");
-                        Thread.Sleep(1000); // Wait for navigation
+                        // Switch to the new window
+                        var newHandles = driver.WindowHandles;
+                        string newHandle = newHandles.FirstOrDefault(h => !originalHandles.Contains(h));
+                        if (newHandle != null)
+                        {
+                            driver.SwitchTo().Window(newHandle);
+                            Thread.Sleep(500);
+                            Console.WriteLine("Successfully switched to new clean tab");
+                        }
                     }
-
-                    Console.WriteLine($"Active tab URL: {driver.Url}");
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Warning: Failed to create new tab via CDP: {ex.Message}");
+                    }
                 }
                 else
                 {
-                    throw new Exception("No window handles available - browser may have closed");
+                    // Not on a problematic page, just ensure we're on the right window
+                    var windowHandles = driver.WindowHandles;
+                    if (windowHandles.Count > 0)
+                    {
+                        driver.SwitchTo().Window(windowHandles[windowHandles.Count - 1]);
+                        Thread.Sleep(1000);
+                    }
                 }
+
+                Console.WriteLine($"Active tab URL: {driver.Url}");
             }
             catch (Exception ex)
             {
