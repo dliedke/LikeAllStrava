@@ -69,7 +69,7 @@ namespace LikeAllStrava
                         var str = card.GetDomProperty("innerHTML");
 
                         // Check if this is not own user workout
-                        if (!regexOwnWorkout.IsMatch(str))
+                        if (str != null && !regexOwnWorkout.IsMatch(str))
                         {
                             // Scroll to the like button
                             Console.Write("Finding workout to give kudos...");
@@ -145,15 +145,15 @@ namespace LikeAllStrava
 
             // Check if more workouts were loaded
             // if not, wait a bit more
-            if (totalCardsNow == totalCardsWorkout && retries < 30)
+            if (totalCardsNow == totalCardsWorkout && retries < 60)
             {
                 System.Threading.Thread.Sleep(500);
                 retries++;
                 goto wait;
             }
 
-            // After 15s if no more workouts were find we are done
-            if (retries == 30)
+            // After 30s if no more workouts were find we are done
+            if (retries == 60)
             {
                 return true;
             }

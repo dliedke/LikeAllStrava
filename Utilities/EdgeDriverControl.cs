@@ -93,7 +93,7 @@ namespace LikeAllStrava
 
                         // Switch to the new window
                         var newHandles = driver.WindowHandles;
-                        string newHandle = newHandles.FirstOrDefault(h => !originalHandles.Contains(h));
+                        string? newHandle = newHandles.FirstOrDefault(h => !originalHandles.Contains(h));
                         if (newHandle != null)
                         {
                             driver.SwitchTo().Window(newHandle);

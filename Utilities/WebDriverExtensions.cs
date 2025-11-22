@@ -10,13 +10,13 @@ namespace LikeAllStrava
     {
         public class WaitExtension
         {
-            public static IWebElement WaitUntilElement(IWebDriver driver, By elementLocator, int timeout = 30)
+            public static IWebElement WaitUntilElement(IWebDriver driver, By elementLocator, int timeout = 60)
             {
                 WaitUntilElementExists(driver, elementLocator, timeout);
                 return WaitUntilElementIsClicable(driver, elementLocator, timeout);
             }
 
-            private static IWebElement WaitUntilElementExists(IWebDriver driver, By elementLocator, int timeout = 30)
+            private static IWebElement WaitUntilElementExists(IWebDriver driver, By elementLocator, int timeout = 60)
             {
                 try
                 {
@@ -30,7 +30,7 @@ namespace LikeAllStrava
                 }
             }
 
-            private static IWebElement WaitUntilElementIsClicable(IWebDriver driver, By elementLocator, int timeout = 30)
+            private static IWebElement WaitUntilElementIsClicable(IWebDriver driver, By elementLocator, int timeout = 60)
             {
                 var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(timeout));
                 return wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(elementLocator));

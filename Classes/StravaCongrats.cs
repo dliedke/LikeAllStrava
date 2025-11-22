@@ -24,7 +24,7 @@ namespace LikeAllStrava
             _s.EdgeDriver.Url = "https://www.strava.com/dashboard?num_entries=600";
 
             // Wait a bit and check if page is loaded finding an element
-            WebDriverExtensions.WaitExtension.WaitUntilElement(_s.EdgeDriver, By.XPath("//*[@data-testid='web-feed-entry']"), 15);
+            WebDriverExtensions.WaitExtension.WaitUntilElement(_s.EdgeDriver, By.XPath("//*[@data-testid='web-feed-entry']"), 45);
 
             try
             {
@@ -44,7 +44,7 @@ namespace LikeAllStrava
 
                         // Check if this is not own user workout
                         // And validate workout type
-                        if (!_regexOwnWorkout.IsMatch(str) &&
+                        if (str != null && !_regexOwnWorkout.IsMatch(str) &&
                             ValidateTrainingType(str))
                         {
                             // Find total KMs for the workout
@@ -88,7 +88,7 @@ namespace LikeAllStrava
                                 var str2 = element2.GetDomProperty("innerHTML");
 
                                 // If we already commented, do not add duplicated comment
-                                if (str2.Contains(messageCongrats))
+                                if (str2 != null && str2.Contains(messageCongrats))
                                 {
                                     continue;
                                 }

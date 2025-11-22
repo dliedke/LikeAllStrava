@@ -44,7 +44,7 @@ namespace LikeAllStrava
             _s.EdgeDriver.Navigate().GoToUrl("https://www.strava.com/dashboard");
 
             // Wait for feed to load
-            WebDriverExtensions.WaitExtension.WaitUntilElement(_s.EdgeDriver, By.XPath("//*[@data-testid='web-feed-entry']"), 15);
+            WebDriverExtensions.WaitExtension.WaitUntilElement(_s.EdgeDriver, By.XPath("//*[@data-testid='web-feed-entry']"), 45);
 
             Console.WriteLine("Completed Strava Load");
         }
