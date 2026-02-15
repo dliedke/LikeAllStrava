@@ -2,7 +2,7 @@
 
 namespace LikeAllStrava
 {
-    public class ShraredObjects
+    public class SharedObjects
     {
         public static IWebDriver EdgeDriver;
         public static IJavaScriptExecutor JavascriptExecutor;

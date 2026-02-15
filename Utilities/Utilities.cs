@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Configuration;
-using _s = LikeAllStrava.ShraredObjects;
+using _s = LikeAllStrava.SharedObjects;
 
 namespace LikeAllStrava
 {

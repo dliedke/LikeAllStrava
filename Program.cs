@@ -1,7 +1,7 @@
 ﻿// Application to automate like all workouts in the Strava feed and more :)
 
 using System.Text.RegularExpressions;
-using _s = LikeAllStrava.ShraredObjects;
+using _s = LikeAllStrava.SharedObjects;
 
 namespace LikeAllStrava
 {

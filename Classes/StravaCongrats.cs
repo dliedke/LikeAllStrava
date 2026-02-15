@@ -2,7 +2,7 @@
 using OpenQA.Selenium;
 using System.Text.RegularExpressions;
 
-using _s = LikeAllStrava.ShraredObjects;
+using _s = LikeAllStrava.SharedObjects;
 
 namespace LikeAllStrava
 {

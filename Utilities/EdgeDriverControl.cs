@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-using _s = LikeAllStrava.ShraredObjects;
+using _s = LikeAllStrava.SharedObjects;
 
 namespace LikeAllStrava
 {

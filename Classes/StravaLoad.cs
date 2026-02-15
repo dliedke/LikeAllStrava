@@ -1,6 +1,6 @@
 ﻿using OpenQA.Selenium;
 
-using _s = LikeAllStrava.ShraredObjects;
+using _s = LikeAllStrava.SharedObjects;
 
 namespace LikeAllStrava
 {
