@@ -12,11 +12,30 @@ namespace LikeAllStrava
     {
         public static void InitializeEdgeDriver()
         {
+            // Recent Edge/Chromium builds refuse to open the DevTools remote debugging
+            // port when the resolved user data directory is the real default profile
+            // ("DevTools remote debugging requires a non-default data directory") -
+            // even if --user-data-dir is passed explicitly pointing at that same path.
+            // So we use a genuinely separate, dedicated profile directory instead, and
+            // seed it once from the user's real profile so the existing Strava login
+            // (cookies/local storage) carries over instead of requiring a fresh login.
+            string realUserDataDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Microsoft", "Edge", "User Data");
+            string automationUserDataDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "LikeAllStrava", "EdgeProfile");
+
+            if (!Directory.Exists(automationUserDataDir))
+            {
+                SeedAutomationProfile(realUserDataDir, automationUserDataDir);
+            }
+
             var processInfo = new ProcessStartInfo
             {
                 FileName = @"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
                 // Launch with about:blank to avoid edge://discover-chat-v2/ and extension conflicts
-                Arguments = "--remote-debugging-port=59492 --start-maximized about:blank"
+                Arguments = $"--remote-debugging-port=59492 --start-maximized --user-data-dir=\"{automationUserDataDir}\" --profile-directory=Default about:blank"
             };
 
             Process.Start(processInfo);
@@ -129,6 +148,66 @@ namespace LikeAllStrava
                 catch { }
 
                 throw new Exception("Failed to initialize Edge driver: " + ex.Message);
+            }
+        }
+
+        // Seeds a fresh automation profile from the user's real Edge profile so the
+        // existing Strava login carries over instead of requiring a manual re-login.
+        // Skips cache/heavy folders that aren't needed for an authenticated session.
+        private static void SeedAutomationProfile(string realUserDataDir, string automationUserDataDir)
+        {
+            string[] skipFolderNames = { "Cache", "Code Cache", "GPUCache", "GrShaderCache", "ShaderCache", "System Profile", "CrashpadMetrics" };
+
+            try
+            {
+                Console.WriteLine("First run: creating dedicated automation profile and copying existing Strava login...");
+                Directory.CreateDirectory(automationUserDataDir);
+
+                string realLocalState = Path.Combine(realUserDataDir, "Local State");
+                if (File.Exists(realLocalState))
+                {
+                    File.Copy(realLocalState, Path.Combine(automationUserDataDir, "Local State"), true);
+                }
+
+                string realDefaultProfile = Path.Combine(realUserDataDir, "Default");
+                string automationDefaultProfile = Path.Combine(automationUserDataDir, "Default");
+                if (Directory.Exists(realDefaultProfile))
+                {
+                    CopyDirectory(realDefaultProfile, automationDefaultProfile, skipFolderNames);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Warning: failed to seed automation profile from existing Edge profile: " + ex.Message);
+                Console.WriteLine("You may need to log in to Strava manually the first time in the automated browser window.");
+            }
+        }
+
+        private static void CopyDirectory(string sourceDir, string destDir, string[] skipFolderNames)
+        {
+            Directory.CreateDirectory(destDir);
+
+            foreach (string filePath in Directory.GetFiles(sourceDir))
+            {
+                string destFile = Path.Combine(destDir, Path.GetFileName(filePath));
+                try
+                {
+                    File.Copy(filePath, destFile, true);
+                }
+                catch
+                {
+                    // Skip files locked by a running Edge process or otherwise inaccessible
+                }
+            }
+
+            foreach (string subDir in Directory.GetDirectories(sourceDir))
+            {
+                string folderName = Path.GetFileName(subDir);
+                if (skipFolderNames.Contains(folderName, StringComparer.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+                CopyDirectory(subDir, Path.Combine(destDir, folderName), skipFolderNames);
             }
         }
 
